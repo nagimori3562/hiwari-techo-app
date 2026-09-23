@@ -109,7 +109,7 @@
     .nav-btn.active { color: var(--primary); font-weight: 700; }
     .nav-icon { font-size: 1.2rem; }
 
-    /* リッチなログイン画面のスタイル */
+    /* ログイン画面のスタイル */
     #login-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
       background-color: var(--bg); z-index: 9999; 
@@ -153,6 +153,33 @@
     }
     .spinner { width: 40px; height: 40px; border: 4px solid var(--primary-light); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* 登録完了ポップアップ */
+    #success-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 10000;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .success-box {
+      background: var(--card-bg); width: 100%; max-width: 320px;
+      border-radius: 16px; padding: 24px; text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .success-icon { font-size: 3rem; margin-bottom: 8px; line-height: 1; }
+    .success-title { font-size: 1.2rem; font-weight: bold; color: var(--success); margin-bottom: 16px; }
+    .success-details {
+      text-align: left; background: var(--bg); padding: 16px; border-radius: 8px;
+      margin-bottom: 20px; font-size: 0.9rem;
+    }
+    .success-details div { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .success-details div:last-child { margin-bottom: 0; }
+    .success-details span.label { color: var(--text-muted); white-space: nowrap; margin-right: 12px; }
+    .success-details span.val { font-weight: bold; color: var(--text); text-align: right; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -161,6 +188,21 @@
   <div id="loading-overlay">
     <div class="spinner"></div>
     <div style="margin-top: 16px; color: var(--primary); font-weight: bold;">データを同期中...</div>
+  </div>
+
+  <!-- 登録完了ポップアップ -->
+  <div id="success-modal">
+    <div class="success-box">
+      <div class="success-icon">✨</div>
+      <div class="success-title" id="sm-title">登録完了</div>
+      <div class="success-details">
+        <div><span class="label">日付</span><span class="val" id="sm-date"></span></div>
+        <div><span class="label">カテゴリ</span><span class="val" id="sm-category"></span></div>
+        <div><span class="label">金額</span><span class="val" id="sm-amount" style="color: var(--danger); font-size: 1.1rem;"></span></div>
+        <div id="sm-note-row"><span class="label">メモ</span><span class="val" id="sm-note" style="font-weight: normal;"></span></div>
+      </div>
+      <button type="button" class="btn" onclick="document.getElementById('success-modal').style.display='none'">OK</button>
+    </div>
   </div>
 
   <!-- ログイン・新規登録画面 -->
@@ -492,7 +534,6 @@
         const displayName = user.displayName || user.email.split('@')[0];
         document.getElementById('user-name').innerText = displayName + 'さん';
         
-        // ログイン後にクラウドからデータを取得
         if (window.loadDataFromCloud) {
           await window.loadDataFromCloud();
         }
@@ -500,7 +541,7 @@
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
       }
-      overlay.style.display = 'none'; // 監視完了後にローディングを消す
+      overlay.style.display = 'none';
     });
   </script>
 
@@ -519,7 +560,6 @@
     function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; }
     function getTodayStr() { return formatDateForStorage(new Date()); }
     
-    // クラウドからデータを読み込む処理
     window.loadDataFromCloud = async function() {
       if (!window.auth || !window.auth.currentUser) return;
       try {
@@ -530,19 +570,17 @@
           appData = docSnap.data();
           if (!appData.categories) appData.categories = ['食費', '日用品', '交通費', '娯楽', 'その他'];
         } else {
-          // 初回ログイン時の初期データ
           const now = new Date();
           appData.settings.startDate = formatDateForStorage(now);
           const nextMonth = new Date(now); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(nextMonth.getDate() - 1);
           appData.settings.endDate = formatDateForStorage(nextMonth);
           appData.settings.totalBudget = 15000;
-          await window.saveDataToCloud(); // 初期データをクラウドに作成
+          await window.saveDataToCloud();
         }
       } catch (error) {
         console.error("データ取得エラー:", error);
       }
       
-      // 取得したデータを画面に反映
       document.getElementById('setting-total-budget').value = appData.settings.totalBudget || 15000;
       document.getElementById('setting-start-date').value = appData.settings.startDate;
       document.getElementById('setting-end-date').value = appData.settings.endDate;
@@ -556,7 +594,6 @@
       renderAll();
     };
     
-    // クラウドへデータを保存する処理
     window.saveDataToCloud = async function() {
       if (!window.auth || !window.auth.currentUser) return;
       try {
@@ -619,11 +656,28 @@
       let amt = calcEval();
       if (isNaN(amt) || amt <= 0) { alert('正しい金額を入力してください。'); return; }
       const newItem = { id: editingId ? editingId : Date.now(), date: document.getElementById('input-date').value || getTodayStr(), amount: amt, category: document.getElementById('input-category').value, note: document.getElementById('input-note').value.trim() };
-      if (editingId) {
+      
+      const isEdit = !!editingId;
+      
+      if (isEdit) {
         const index = appData.expenses.findIndex(e => e.id === Number(editingId));
         if (index !== -1) appData.expenses[index] = newItem;
       } else { appData.expenses.push(newItem); }
+      
       window.saveDataToCloud(); cancelEdit(); renderAll();
+      
+      // 登録完了ポップアップを表示
+      document.getElementById('sm-date').innerText = newItem.date;
+      document.getElementById('sm-category').innerText = newItem.category;
+      document.getElementById('sm-amount').innerText = '¥' + newItem.amount.toLocaleString();
+      if (newItem.note) {
+        document.getElementById('sm-note').innerText = newItem.note;
+        document.getElementById('sm-note-row').style.display = 'flex';
+      } else {
+        document.getElementById('sm-note-row').style.display = 'none';
+      }
+      document.getElementById('sm-title').innerText = isEdit ? '更新完了' : '登録完了';
+      document.getElementById('success-modal').style.display = 'flex';
     }
     
     function editExpense(id) {
