@@ -286,10 +286,16 @@
     <main>
       <!-- ホームタブ -->
       <div id="tab-home" class="tab-content active">
+        
+        <!-- 全体の残高と予想カード -->
         <div class="card prediction-card">
           <div class="card-title" style="color: #4338CA;">
-            <span>📊 最終日の残高予想</span>
+            <span>💰 全体の残高と予想</span>
             <span id="cycle-range-badge" class="badge" style="background:#E0E7FF; font-size:0.7rem; margin:0;"></span>
+          </div>
+          <div style="margin-bottom: 12px; border-bottom: 1px dashed #C7D2FE; padding-bottom: 12px;">
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">現在の残高（総予算: <span id="total-budget-display">¥0</span>）</div>
+            <div class="hero-amount" id="total-remaining" style="color: var(--text);">¥0</div>
           </div>
           <div id="prediction-message" style="font-size: 0.9rem; line-height: 1.5; font-weight: 500;"></div>
         </div>
@@ -437,7 +443,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { 
-      getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, 
+      getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut, 
       signInWithEmailAndPassword, createUserWithEmailAndPassword, 
       setPersistence, browserLocalPersistence, browserSessionPersistence 
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -518,8 +524,8 @@
     window.loginWithGoogle = function() {
       const provider = new GoogleAuthProvider();
       setPersistence(auth, browserLocalPersistence)
-        .then(() => signInWithPopup(auth, provider))
-        .catch((error) => { console.error("Googleログインエラー:", error); alert("ログインに失敗しました。"); });
+        .then(() => signInWithRedirect(auth, provider))
+        .catch((error) => { console.error("Googleログインエラー:", error); alert("ログイン処理に失敗しました。"); });
     };
 
     window.logout = function() {
@@ -748,17 +754,33 @@
     
     function renderPrediction() {
       const msgEl = document.getElementById('prediction-message'), start = new Date(appData.settings.startDate), end = new Date(appData.settings.endDate), now = new Date();
-      if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; return; }
-      const totalDays = getPeriodDays(), elapsedDays = Math.max(1, Math.round((Math.min(now, end) - start) / 86400000) + 1), remainingDays = totalDays - elapsedDays, totalBudget = appData.settings.totalBudget;
+      const totalBudget = appData.settings.totalBudget || 0;
       let cycleSpent = 0;
+      
       appData.expenses.forEach(e => { const d = new Date(e.date); if (d >= start && d <= end) cycleSpent += e.amount; });
+      
+      // 全体の残高表示の更新
+      const totalRemaining = totalBudget - cycleSpent;
+      document.getElementById('total-budget-display').innerText = '¥' + totalBudget.toLocaleString();
+      const totalRemEl = document.getElementById('total-remaining');
+      totalRemEl.innerText = totalRemaining < 0 ? '-¥' + Math.abs(totalRemaining).toLocaleString() : '¥' + totalRemaining.toLocaleString();
+      totalRemEl.style.color = totalRemaining < 0 ? 'var(--danger)' : 'var(--text)';
+
+      if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; return; }
+      
+      const totalDays = getPeriodDays(), elapsedDays = Math.max(1, Math.round((Math.min(now, end) - start) / 86400000) + 1), remainingDays = totalDays - elapsedDays;
+      
       if (elapsedDays < 7) {
-        msgEl.innerHTML = `期間スタート！総予算 <strong>¥${totalBudget.toLocaleString()}</strong>。<br><span style="color: #6B7280; font-size: 0.85rem;">💡 開始7日目から残高予想が表示されます。</span>`;
+        msgEl.innerHTML = `期間スタート！<br><span style="color: #6B7280; font-size: 0.85rem;">💡 開始7日目から残高予想が表示されます。</span>`;
         return;
       }
       const avgDaily = Math.round(cycleSpent / elapsedDays), projectedTotal = cycleSpent + (avgDaily * remainingDays), diff = totalBudget - projectedTotal;
-      if (diff >= 0) { msgEl.innerHTML = `順調です！約 <strong>¥${diff.toLocaleString()}</strong> の余裕ができそうです✨`; }
-      else { msgEl.innerHTML = `赤字予想：約 <strong>¥${Math.abs(diff).toLocaleString()}</strong> ⚠️`; }
+      if (diff >= 0) { 
+        msgEl.innerHTML = `いいペースです！最終日には約 <strong>¥${diff.toLocaleString()}</strong> 残る見込みです✨`; 
+      } else { 
+        // マイナス表示を外し「赤字になりそうです」に修正
+        msgEl.innerHTML = `まずいです！今のペースだと最終日には約 <strong style="color: var(--danger);">¥${Math.abs(diff).toLocaleString()}</strong> 赤字になりそうです💦`; 
+      }
     }
     
     function renderCategorySelects() {
@@ -909,3 +931,4 @@
   </script>
 </body>
 </html>
+
