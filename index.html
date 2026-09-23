@@ -8,7 +8,6 @@
   <meta http-equiv="Expires" content="0">
   <title>ひわり手帳</title>
   
-  <!-- 日付選択をワンタップにするためのライブラリ（Flatpickr） -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
@@ -32,7 +31,6 @@
     html { background-color: var(--bg); height: 100%; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 90px; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
     
-    /* アプリのメイン画面（最初は隠しておく） */
     #app-container { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
     
     header { background-color: var(--card-bg); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
@@ -52,22 +50,14 @@
     .flex-inputs { display: flex; flex-direction: row; gap: 8px; margin-bottom: 12px; width: 100%; }
     .flex-inputs > * { flex: 1; min-width: 0; }
     
-    input[type="text"], input[type="number"], select { 
-      padding: 12px 14px; 
-      border: 1px solid var(--border); 
-      border-radius: 10px; 
-      font-size: 1rem; 
-      width: 100%; 
-      background-color: #fff; 
-      display: block; 
-      box-sizing: border-box;
-      -webkit-appearance: none;
-      margin: 0;
+    input[type="text"], input[type="number"], input[type="email"], input[type="password"], select { 
+      padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; width: 100%; background-color: #fff; display: block; box-sizing: border-box; -webkit-appearance: none; margin: 0; transition: border-color 0.2s;
     }
     .date-picker { text-align: center; cursor: pointer; background-color: #fff !important; }
     input:focus, select:focus { border-color: var(--primary); outline: none; }
     
-    .btn { background-color: var(--primary); color: white; border: none; padding: 14px 20px; border-radius: 10px; font-weight: 600; font-size: 1rem; cursor: pointer; width: 100%; display: block; text-align: center; }
+    .btn { background-color: var(--primary); color: white; border: none; padding: 14px 20px; border-radius: 10px; font-weight: 600; font-size: 1rem; cursor: pointer; width: 100%; display: block; text-align: center; transition: opacity 0.2s; }
+    .btn:active { opacity: 0.8; }
     .btn-secondary { background-color: #F3F4F6; color: var(--text); border: 1px solid var(--border); padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
     
     .calc-display { background: #F3F4F6; padding: 12px 16px; border-radius: 10px; font-size: 1.5rem; font-weight: bold; text-align: right; min-height: 54px; margin-bottom: 12px; border: 1px solid var(--border); overflow-x: auto; white-space: nowrap; }
@@ -119,32 +109,116 @@
     .nav-btn.active { color: var(--primary); font-weight: 700; }
     .nav-icon { font-size: 1.2rem; }
 
-    /* ログイン画面のスタイル */
+    /* リッチなログイン画面のスタイル */
     #login-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
       background-color: var(--bg); z-index: 9999; 
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;
     }
-    .login-box {
-      background: var(--card-bg); padding: 40px 30px; border-radius: 20px; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; width: 90%; max-width: 360px; border: 1px solid var(--border);
+    .auth-box {
+      background: var(--card-bg); padding: 32px 24px; border-radius: 16px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid var(--border);
     }
+    .auth-title { text-align: center; color: var(--primary); font-size: 1.6rem; font-weight: bold; margin-bottom: 6px; }
+    .auth-subtitle { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 24px; }
+    
+    .auth-form-group { margin-bottom: 16px; text-align: left; position: relative; }
+    .auth-form-group label { display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 6px; font-weight: 600; }
+    
+    /* パスワードの目玉アイコン用ラッパー */
+    .password-wrapper { position: relative; display: flex; align-items: center; }
+    .password-wrapper input { padding-right: 40px; }
+    .toggle-password { position: absolute; right: 12px; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); padding: 0; }
+    
+    .auth-options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 0.85rem; }
+    .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); }
+    
+    .divider { display: flex; align-items: center; text-align: center; margin: 24px 0; color: var(--text-muted); font-size: 0.85rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+    .divider:not(:empty)::before { margin-right: .5em; }
+    .divider:not(:empty)::after { margin-left: .5em; }
+    
+    .btn-google { background-color: #fff; color: #3c4043; border: 1px solid #dadce0; display: flex; justify-content: center; align-items: center; gap: 10px; font-weight: 500; }
+    .btn-google:hover { background-color: #f8f9fa; }
+    
+    .auth-switch { text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-muted); }
+    .auth-switch a { color: var(--primary); text-decoration: none; font-weight: bold; cursor: pointer; }
+    .auth-switch a:hover { text-decoration: underline; }
+    
+    #register-view { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- ログイン・新規登録画面（未ログイン時に表示） -->
+  <!-- ログイン・新規登録画面 -->
   <div id="login-screen">
-    <div class="login-box">
-      <h1 style="color: var(--primary); font-size: 2rem; margin-bottom: 8px;">ひわり手帳</h1>
-      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 36px;">毎日の予算をシンプルに管理</p>
-      <button type="button" class="btn" style="border-radius: 30px; padding: 16px; font-size: 1.05rem;" onclick="loginWithGoogle()">
-        Googleでログイン / 登録
-      </button>
+    <div class="auth-box">
+      <div class="auth-title">ひわり手帳</div>
+      <div class="auth-subtitle" id="auth-subtitle">ログインして予算管理を始めましょう</div>
+
+      <!-- ログインフォーム -->
+      <form id="login-view" onsubmit="handleEmailLogin(event)">
+        <div class="auth-form-group">
+          <label>メールアドレス</label>
+          <input type="email" id="login-email" placeholder="mail@example.com" required>
+        </div>
+        <div class="auth-form-group">
+          <label>パスワード</label>
+          <div class="password-wrapper">
+            <input type="password" id="login-password" placeholder="パスワードを入力" required>
+            <button type="button" class="toggle-password" onclick="togglePassword('login-password')">👁️</button>
+          </div>
+        </div>
+        <div class="auth-options">
+          <label class="checkbox-label">
+            <input type="checkbox" id="remember-me" checked> 次回から自動でログイン
+          </label>
+        </div>
+        <button type="submit" class="btn">ログイン</button>
+        
+        <div class="divider">または</div>
+        
+        <button type="button" class="btn btn-google" onclick="loginWithGoogle()">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18">
+          Googleでログイン
+        </button>
+
+        <div class="auth-switch">
+          アカウントをお持ちでない方は <a onclick="switchAuthView('register')">新規登録</a>
+        </div>
+      </form>
+
+      <!-- 新規登録フォーム -->
+      <form id="register-view" onsubmit="handleEmailRegister(event)">
+        <div class="auth-form-group">
+          <label>メールアドレス</label>
+          <input type="email" id="reg-email" placeholder="mail@example.com" required>
+        </div>
+        <div class="auth-form-group">
+          <label>パスワード (6文字以上)</label>
+          <div class="password-wrapper">
+            <input type="password" id="reg-password" placeholder="パスワードを作成" minlength="6" required>
+            <button type="button" class="toggle-password" onclick="togglePassword('reg-password')">👁️</button>
+          </div>
+        </div>
+        <div class="auth-form-group">
+          <label>パスワード（確認用）</label>
+          <div class="password-wrapper">
+            <input type="password" id="reg-password-confirm" placeholder="もう一度入力" minlength="6" required>
+            <button type="button" class="toggle-password" onclick="togglePassword('reg-password-confirm')">👁️</button>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn">新規登録</button>
+
+        <div class="auth-switch">
+          すでにアカウントをお持ちの方は <a onclick="switchAuthView('login')">ログイン</a>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- アプリ本体（ログイン成功後に表示） -->
+  <!-- アプリ本体 -->
   <div id="app-container">
     <header>
       <h1>ひわり手帳</h1>
@@ -155,6 +229,7 @@
     </header>
     
     <main>
+      <!-- ホームタブ -->
       <div id="tab-home" class="tab-content active">
         <div class="card prediction-card">
           <div class="card-title" style="color: #4338CA;">
@@ -199,7 +274,6 @@
           </div>
           
           <div class="flex-inputs">
-            <!-- input type="date" をやめて text にし、Flatpickrを適用する -->
             <input type="text" id="input-date" class="date-picker" readonly>
             <select id="input-category"></select>
           </div>
@@ -218,6 +292,7 @@
         </div>
       </div>
       
+      <!-- 分析タブ -->
       <div id="tab-history" class="tab-content">
         <div class="card">
           <div class="card-title">今期の分析（設定期間）</div>
@@ -248,6 +323,7 @@
         </div>
       </div>
       
+      <!-- 設定タブ -->
       <div id="tab-settings" class="tab-content">
         <div class="card">
           <div class="card-title">📅 今期の期間設定</div>
@@ -301,11 +377,16 @@
     </nav>
   </div>
 
-  <!-- Firebaseの接続設定とログイン処理 -->
+  <!-- Firebaseの設定とログイン連携ロジック -->
   <script type="module">
+    // 必要な機能を一式インポート
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { 
+      getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, 
+      signInWithEmailAndPassword, createUserWithEmailAndPassword, 
+      setPersistence, browserLocalPersistence, browserSessionPersistence 
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDnKAzqwsoquznEtJv_24hZB9_kKjV3P-k",
@@ -324,34 +405,118 @@
     window.setDoc = setDoc;
     window.getDoc = getDoc;
 
-    window.loginWithGoogle = function() {
-      const provider = new GoogleAuthProvider();
-      signInWithPopup(auth, provider).catch((error) => {
-          console.error("ログインエラー:", error);
-          alert("ログインに失敗しました。");
-      });
+    // --- 新しい認証ロジック群 ---
+
+    // ログイン / 新規登録の画面切り替え
+    window.switchAuthView = function(view) {
+      if (view === 'register') {
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('register-view').style.display = 'block';
+        document.getElementById('auth-subtitle').innerText = '新しくアカウントを作成します';
+      } else {
+        document.getElementById('register-view').style.display = 'none';
+        document.getElementById('login-view').style.display = 'block';
+        document.getElementById('auth-subtitle').innerText = 'ログインして予算管理を始めましょう';
+      }
     };
 
+    // パスワードの表示/非表示切り替え
+    window.togglePassword = function(inputId) {
+      const input = document.getElementById(inputId);
+      if (input.type === "password") {
+        input.type = "text";
+      } else {
+        input.type = "password";
+      }
+    };
+
+    // メール＆パスワードでのログイン処理
+    window.handleEmailLogin = function(e) {
+      e.preventDefault(); // 画面の再読み込みを防止
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      const rememberMe = document.getElementById('remember-me').checked;
+
+      // 「次回から自動でログイン」の状態に応じて保存期間を設定
+      const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+
+      setPersistence(auth, persistenceType)
+        .then(() => {
+          return signInWithEmailAndPassword(auth, email, pass);
+        })
+        .catch((error) => {
+          console.error("ログインエラー:", error);
+          if(error.code === 'auth/invalid-credential') {
+            alert("メールアドレスまたはパスワードが間違っています。");
+          } else {
+            alert("ログインに失敗しました。設定をご確認ください。");
+          }
+        });
+    };
+
+    // メール＆パスワードでの新規登録処理
+    window.handleEmailRegister = function(e) {
+      e.preventDefault();
+      const email = document.getElementById('reg-email').value;
+      const pass = document.getElementById('reg-password').value;
+      const passConfirm = document.getElementById('reg-password-confirm').value;
+
+      if (pass !== passConfirm) {
+        alert("パスワードが一致しません。もう一度確認してください。");
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, email, pass)
+        .then((userCredential) => {
+          alert("アカウントの作成が完了しました！");
+        })
+        .catch((error) => {
+          console.error("登録エラー:", error);
+          if(error.code === 'auth/email-already-in-use') {
+            alert("このメールアドレスは既に登録されています。");
+          } else {
+            alert("登録に失敗しました。");
+          }
+        });
+    };
+
+    // Googleログイン処理
+    window.loginWithGoogle = function() {
+      const provider = new GoogleAuthProvider();
+      // Googleログインは基本的に「自動ログイン（Local）」として扱う
+      setPersistence(auth, browserLocalPersistence)
+        .then(() => signInWithPopup(auth, provider))
+        .catch((error) => {
+          console.error("Googleログインエラー:", error);
+          alert("ログインに失敗しました。");
+        });
+    };
+
+    // ログアウト処理
     window.logout = function() {
       if (confirm('ログアウトしますか？')) {
         signOut(auth);
       }
     };
 
-    // ログイン状態によって画面を切り替える
+    // ログイン状態による画面全体の切り替え
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        // ログイン成功時
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
-        document.getElementById('user-name').innerText = user.displayName + 'さん';
+        // メール登録の人はdisplayNameがない場合があるため、無い場合はメアドの@より前を表示
+        const displayName = user.displayName || user.email.split('@')[0];
+        document.getElementById('user-name').innerText = displayName + 'さん';
       } else {
+        // 未ログイン時
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
       }
     });
   </script>
 
-  <!-- アプリの基本プログラム -->
+  <!-- アプリの基本プログラム（家計簿・カレンダー機能） -->
   <script>
     const STORAGE_KEY = 'budget_app_data_v14_hiwari';
     let appData = { settings: { totalBudget: 15000, startDate: '', endDate: '' }, categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], expenses: [] };
@@ -359,12 +524,7 @@
     let currentCalDate = new Date(), currentCalcStr = "", editingId = null;
     
     window.onload = () => { 
-      // Flatpickr（カレンダー）の初期設定：スマホ標準UIを無効化して即時反映させる
-      flatpickr(".date-picker", {
-        locale: "ja",
-        disableMobile: true,
-        dateFormat: "Y-m-d"
-      });
+      flatpickr(".date-picker", { locale: "ja", disableMobile: true, dateFormat: "Y-m-d" });
       loadData(); 
       document.getElementById('input-date').value = getTodayStr(); 
       renderAll(); 
@@ -456,11 +616,9 @@
       const item = appData.expenses.find(e => e.id === Number(id));
       if (!item) return;
       editingId = item.id; currentCalcStr = String(item.amount); updateCalcDisplay();
-      
       const dateInput = document.getElementById('input-date');
       dateInput.value = item.date;
-      if(dateInput._flatpickr) dateInput._flatpickr.setDate(item.date); // Flatpickrにも反映
-      
+      if(dateInput._flatpickr) dateInput._flatpickr.setDate(item.date);
       document.getElementById('input-category').value = item.category;
       document.getElementById('input-note').value = item.note || '';
       renderEditModeUI(); switchTab('home');
@@ -468,11 +626,9 @@
     
     function cancelEdit() {
       editingId = null; calcClear(); document.getElementById('input-note').value = '';
-      
       const dateInput = document.getElementById('input-date');
       dateInput.value = getTodayStr(); 
-      if(dateInput._flatpickr) dateInput._flatpickr.setDate(getTodayStr()); // Flatpickrにも反映
-      
+      if(dateInput._flatpickr) dateInput._flatpickr.setDate(getTodayStr());
       renderEditModeUI();
     }
     
@@ -591,7 +747,6 @@
       const dailyTotals = {};
       appData.expenses.forEach(e => { dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount; });
       const todayStr = getTodayStr(), periodStart = new Date(appData.settings.startDate), periodEnd = new Date(appData.settings.endDate), dailyBudget = getDailyBudget();
-      
       const today = new Date(); today.setHours(0, 0, 0, 0);
       
       for (let day = 1; day <= daysInMonth; day++) {
@@ -600,16 +755,13 @@
         if (dateStr === todayStr) cell.classList.add('today');
         
         if (current < periodStart || current > periodEnd) { 
-          // 期間外は薄く表示（金額なし）
           cell.style.opacity = '0.4'; 
           cell.innerHTML = `<div>${day}</div><div class="cal-amount"></div>`;
         } else {
-          // 期間内の場合、今日までの日付は「0円」でも色をつけて表示する
           if (current <= today) {
             cell.classList.add(spent <= dailyBudget ? 'budget-ok' : 'budget-over');
             cell.innerHTML = `<div>${day}</div><div class="cal-amount">¥${spent.toLocaleString()}</div>`;
           } else {
-            // 未来の日付はまだ使っていないので金額を出さない
             cell.innerHTML = `<div>${day}</div><div class="cal-amount"></div>`;
           }
         }
