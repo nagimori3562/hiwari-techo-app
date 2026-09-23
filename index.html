@@ -125,9 +125,14 @@
     .auth-form-group { margin-bottom: 16px; text-align: left; position: relative; }
     .auth-form-group label { display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 6px; font-weight: 600; }
     
+    /* パスワードの目玉アイコン */
     .password-wrapper { position: relative; display: flex; align-items: center; }
-    .password-wrapper input { padding-right: 40px; }
-    .toggle-password { position: absolute; right: 12px; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); padding: 0; }
+    .password-wrapper input { padding-right: 44px; }
+    .toggle-password { 
+      position: absolute; right: 10px; background: none; border: none; 
+      cursor: pointer; color: #4B5563; padding: 6px; display: flex; align-items: center; justify-content: center;
+    }
+    .toggle-password svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     
     .auth-options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 0.85rem; }
     .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); }
@@ -221,7 +226,10 @@
           <label>パスワード</label>
           <div class="password-wrapper">
             <input type="password" id="login-password" placeholder="パスワードを入力" required>
-            <button type="button" class="toggle-password" onclick="togglePassword('login-password')">👁️</button>
+            <button type="button" class="toggle-password" onclick="togglePassword('login-password', this)">
+              <!-- 初期状態：非表示アイコン（スラッシュ付き） -->
+              <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
           </div>
         </div>
         <div class="auth-options">
@@ -253,14 +261,18 @@
           <label>パスワード (6文字以上)</label>
           <div class="password-wrapper">
             <input type="password" id="reg-password" placeholder="パスワードを作成" minlength="6" required>
-            <button type="button" class="toggle-password" onclick="togglePassword('reg-password')">👁️</button>
+            <button type="button" class="toggle-password" onclick="togglePassword('reg-password', this)">
+              <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
           </div>
         </div>
         <div class="auth-form-group">
           <label>パスワード（確認用）</label>
           <div class="password-wrapper">
             <input type="password" id="reg-password-confirm" placeholder="もう一度入力" minlength="6" required>
-            <button type="button" class="toggle-password" onclick="togglePassword('reg-password-confirm')">👁️</button>
+            <button type="button" class="toggle-password" onclick="togglePassword('reg-password-confirm', this)">
+              <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
           </div>
         </div>
         
@@ -443,7 +455,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { 
-      getAuth, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut, 
+      getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, 
       signInWithEmailAndPassword, createUserWithEmailAndPassword, 
       setPersistence, browserLocalPersistence, browserSessionPersistence 
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -478,9 +490,18 @@
       }
     };
 
-    window.togglePassword = function(inputId) {
+    // シンプルなSVGアイコンの切り替え
+    window.togglePassword = function(inputId, btn) {
       const input = document.getElementById(inputId);
-      input.type = input.type === "password" ? "text" : "password";
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      
+      // 目（開いている）と 目（斜め線付き）のSVGを切り替え
+      if (isPassword) {
+        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      } else {
+        btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+      }
     };
 
     window.handleEmailLogin = function(e) {
@@ -521,11 +542,20 @@
         });
     };
 
+    // タップの瞬間に同期的に直接signInWithPopupを起動（ポップアップブロックを完全回避）
     window.loginWithGoogle = function() {
       const provider = new GoogleAuthProvider();
-      setPersistence(auth, browserLocalPersistence)
-        .then(() => signInWithRedirect(auth, provider))
-        .catch((error) => { console.error("Googleログインエラー:", error); alert("ログイン処理に失敗しました。"); });
+      signInWithPopup(auth, provider)
+        .then(() => {
+          // ログイン成功後にバックグラウンドで永続化を設定
+          setPersistence(auth, browserLocalPersistence);
+        })
+        .catch((error) => { 
+          console.error("Googleログインエラー:", error);
+          if (error.code !== "auth/popup-closed-by-user") {
+            alert("ログインに失敗しました。");
+          }
+        });
     };
 
     window.logout = function() {
@@ -672,7 +702,6 @@
       
       window.saveDataToCloud(); cancelEdit(); renderAll();
       
-      // 登録完了ポップアップを表示
       document.getElementById('sm-date').innerText = newItem.date;
       document.getElementById('sm-category').innerText = newItem.category;
       document.getElementById('sm-amount').innerText = '¥' + newItem.amount.toLocaleString();
@@ -759,7 +788,6 @@
       
       appData.expenses.forEach(e => { const d = new Date(e.date); if (d >= start && d <= end) cycleSpent += e.amount; });
       
-      // 全体の残高表示の更新
       const totalRemaining = totalBudget - cycleSpent;
       document.getElementById('total-budget-display').innerText = '¥' + totalBudget.toLocaleString();
       const totalRemEl = document.getElementById('total-remaining');
@@ -778,7 +806,6 @@
       if (diff >= 0) { 
         msgEl.innerHTML = `いいペースです！最終日には約 <strong>¥${diff.toLocaleString()}</strong> 残る見込みです✨`; 
       } else { 
-        // マイナス表示を外し「赤字になりそうです」に修正
         msgEl.innerHTML = `まずいです！今のペースだと最終日には約 <strong style="color: var(--danger);">¥${Math.abs(diff).toLocaleString()}</strong> 赤字になりそうです💦`; 
       }
     }
@@ -931,4 +958,3 @@
   </script>
 </body>
 </html>
-
