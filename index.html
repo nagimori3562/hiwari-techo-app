@@ -125,7 +125,6 @@
     .auth-form-group { margin-bottom: 16px; text-align: left; position: relative; }
     .auth-form-group label { display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 6px; font-weight: 600; }
     
-    /* パスワードの目玉アイコン用ラッパー */
     .password-wrapper { position: relative; display: flex; align-items: center; }
     .password-wrapper input { padding-right: 40px; }
     .toggle-password { position: absolute; right: 12px; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); padding: 0; }
@@ -146,9 +145,23 @@
     .auth-switch a:hover { text-decoration: underline; }
     
     #register-view { display: none; }
+    
+    /* ローディングオーバーレイ */
+    #loading-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg);
+      z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .spinner { width: 40px; height: 40px; border: 4px solid var(--primary-light); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
+
+  <!-- 初回読み込み時のローディング -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div style="margin-top: 16px; color: var(--primary); font-weight: bold;">データを同期中...</div>
+  </div>
 
   <!-- ログイン・新規登録画面 -->
   <div id="login-screen">
@@ -359,7 +372,7 @@
         
         <div class="card" style="border-color: #FEE2E2;">
           <div class="card-title" style="color: var(--danger);">データリセット</div>
-          <button type="button" class="btn" style="background-color: var(--danger);" onclick="resetAllData()">全データを初期化</button>
+          <button type="button" class="btn" style="background-color: var(--danger);" onclick="window.resetAllData()">全データを初期化</button>
         </div>
       </div>
     </main>
@@ -379,7 +392,6 @@
 
   <!-- Firebaseの設定とログイン連携ロジック -->
   <script type="module">
-    // 必要な機能を一式インポート
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
     import { 
@@ -400,14 +412,12 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    window.auth = auth;
     window.db = getFirestore(app);
     window.doc = doc;
     window.setDoc = setDoc;
     window.getDoc = getDoc;
 
-    // --- 新しい認証ロジック群 ---
-
-    // ログイン / 新規登録の画面切り替え
     window.switchAuthView = function(view) {
       if (view === 'register') {
         document.getElementById('login-view').style.display = 'none';
@@ -420,41 +430,30 @@
       }
     };
 
-    // パスワードの表示/非表示切り替え
     window.togglePassword = function(inputId) {
       const input = document.getElementById(inputId);
-      if (input.type === "password") {
-        input.type = "text";
-      } else {
-        input.type = "password";
-      }
+      input.type = input.type === "password" ? "text" : "password";
     };
 
-    // メール＆パスワードでのログイン処理
     window.handleEmailLogin = function(e) {
-      e.preventDefault(); // 画面の再読み込みを防止
+      e.preventDefault();
       const email = document.getElementById('login-email').value;
       const pass = document.getElementById('login-password').value;
       const rememberMe = document.getElementById('remember-me').checked;
-
-      // 「次回から自動でログイン」の状態に応じて保存期間を設定
       const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
 
       setPersistence(auth, persistenceType)
-        .then(() => {
-          return signInWithEmailAndPassword(auth, email, pass);
-        })
+        .then(() => signInWithEmailAndPassword(auth, email, pass))
         .catch((error) => {
           console.error("ログインエラー:", error);
           if(error.code === 'auth/invalid-credential') {
             alert("メールアドレスまたはパスワードが間違っています。");
           } else {
-            alert("ログインに失敗しました。設定をご確認ください。");
+            alert("ログインに失敗しました。");
           }
         });
     };
 
-    // メール＆パスワードでの新規登録処理
     window.handleEmailRegister = function(e) {
       e.preventDefault();
       const email = document.getElementById('reg-email').value;
@@ -462,97 +461,112 @@
       const passConfirm = document.getElementById('reg-password-confirm').value;
 
       if (pass !== passConfirm) {
-        alert("パスワードが一致しません。もう一度確認してください。");
+        alert("パスワードが一致しません。");
         return;
       }
-
       createUserWithEmailAndPassword(auth, email, pass)
-        .then((userCredential) => {
-          alert("アカウントの作成が完了しました！");
-        })
+        .then(() => alert("アカウントの作成が完了しました！"))
         .catch((error) => {
           console.error("登録エラー:", error);
-          if(error.code === 'auth/email-already-in-use') {
-            alert("このメールアドレスは既に登録されています。");
-          } else {
-            alert("登録に失敗しました。");
-          }
+          if(error.code === 'auth/email-already-in-use') alert("このメールアドレスは既に登録されています。");
+          else alert("登録に失敗しました。");
         });
     };
 
-    // Googleログイン処理
     window.loginWithGoogle = function() {
       const provider = new GoogleAuthProvider();
-      // Googleログインは基本的に「自動ログイン（Local）」として扱う
       setPersistence(auth, browserLocalPersistence)
         .then(() => signInWithPopup(auth, provider))
-        .catch((error) => {
-          console.error("Googleログインエラー:", error);
-          alert("ログインに失敗しました。");
-        });
+        .catch((error) => { console.error("Googleログインエラー:", error); alert("ログインに失敗しました。"); });
     };
 
-    // ログアウト処理
     window.logout = function() {
-      if (confirm('ログアウトしますか？')) {
-        signOut(auth);
-      }
+      if (confirm('ログアウトしますか？')) signOut(auth);
     };
 
-    // ログイン状態による画面全体の切り替え
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
+      const overlay = document.getElementById('loading-overlay');
       if (user) {
-        // ログイン成功時
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-container').style.display = 'flex';
-        // メール登録の人はdisplayNameがない場合があるため、無い場合はメアドの@より前を表示
         const displayName = user.displayName || user.email.split('@')[0];
         document.getElementById('user-name').innerText = displayName + 'さん';
+        
+        // ログイン後にクラウドからデータを取得
+        if (window.loadDataFromCloud) {
+          await window.loadDataFromCloud();
+        }
       } else {
-        // 未ログイン時
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
       }
+      overlay.style.display = 'none'; // 監視完了後にローディングを消す
     });
   </script>
 
   <!-- アプリの基本プログラム（家計簿・カレンダー機能） -->
   <script>
-    const STORAGE_KEY = 'budget_app_data_v14_hiwari';
     let appData = { settings: { totalBudget: 15000, startDate: '', endDate: '' }, categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], expenses: [] };
     const chartColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
     let currentCalDate = new Date(), currentCalcStr = "", editingId = null;
     
     window.onload = () => { 
       flatpickr(".date-picker", { locale: "ja", disableMobile: true, dateFormat: "Y-m-d" });
-      loadData(); 
       document.getElementById('input-date').value = getTodayStr(); 
-      renderAll(); 
     };
     
     function formatDateForStorage(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
     function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; }
     function getTodayStr() { return formatDateForStorage(new Date()); }
     
-    function loadData() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        appData = JSON.parse(saved);
-        if (!appData.categories) appData.categories = ['食費', '日用品', '交通費', '娯楽', 'その他'];
+    // クラウドからデータを読み込む処理
+    window.loadDataFromCloud = async function() {
+      if (!window.auth || !window.auth.currentUser) return;
+      try {
+        const docRef = window.doc(window.db, "users", window.auth.currentUser.uid);
+        const docSnap = await window.getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          appData = docSnap.data();
+          if (!appData.categories) appData.categories = ['食費', '日用品', '交通費', '娯楽', 'その他'];
+        } else {
+          // 初回ログイン時の初期データ
+          const now = new Date();
+          appData.settings.startDate = formatDateForStorage(now);
+          const nextMonth = new Date(now); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(nextMonth.getDate() - 1);
+          appData.settings.endDate = formatDateForStorage(nextMonth);
+          appData.settings.totalBudget = 15000;
+          await window.saveDataToCloud(); // 初期データをクラウドに作成
+        }
+      } catch (error) {
+        console.error("データ取得エラー:", error);
       }
-      if (!appData.settings.startDate || !appData.settings.endDate) {
-        const now = new Date();
-        appData.settings.startDate = formatDateForStorage(now);
-        const nextMonth = new Date(now); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(nextMonth.getDate() - 1);
-        appData.settings.endDate = formatDateForStorage(nextMonth);
-      }
+      
+      // 取得したデータを画面に反映
       document.getElementById('setting-total-budget').value = appData.settings.totalBudget || 15000;
       document.getElementById('setting-start-date').value = appData.settings.startDate;
       document.getElementById('setting-end-date').value = appData.settings.endDate;
+      
+      const startPicker = document.getElementById('setting-start-date');
+      const endPicker = document.getElementById('setting-end-date');
+      if (startPicker._flatpickr) startPicker._flatpickr.setDate(appData.settings.startDate);
+      if (endPicker._flatpickr) endPicker._flatpickr.setDate(appData.settings.endDate);
+      
       updateBudgetPreview();
-    }
+      renderAll();
+    };
     
-    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
+    // クラウドへデータを保存する処理
+    window.saveDataToCloud = async function() {
+      if (!window.auth || !window.auth.currentUser) return;
+      try {
+        const docRef = window.doc(window.db, "users", window.auth.currentUser.uid);
+        await window.setDoc(docRef, appData);
+      } catch (error) {
+        console.error("データ保存エラー:", error);
+      }
+    };
+    
     function getPeriodDays() {
       if (!appData.settings.startDate || !appData.settings.endDate) return 1;
       const start = new Date(appData.settings.startDate), end = new Date(appData.settings.endDate);
@@ -609,7 +623,7 @@
         const index = appData.expenses.findIndex(e => e.id === Number(editingId));
         if (index !== -1) appData.expenses[index] = newItem;
       } else { appData.expenses.push(newItem); }
-      saveData(); cancelEdit(); renderAll();
+      window.saveDataToCloud(); cancelEdit(); renderAll();
     }
     
     function editExpense(id) {
@@ -638,7 +652,7 @@
       else { addBtn.innerText = '支出を記録する'; addBtn.style.backgroundColor = 'var(--primary)'; cancelBtn.style.display = 'none'; }
     }
     
-    function deleteExpense(id) { appData.expenses = appData.expenses.filter(item => item.id !== Number(id)); saveData(); renderAll(); }
+    function deleteExpense(id) { appData.expenses = appData.expenses.filter(item => item.id !== Number(id)); window.saveDataToCloud(); renderAll(); }
     
     function calculateDailyBalances() {
       const dailyMap = {};
@@ -788,30 +802,46 @@
     function addCategory() {
       const val = document.getElementById('new-cat-name').value.trim();
       if (!val || appData.categories.includes(val)) return;
-      appData.categories.push(val); saveData(); renderAll(); document.getElementById('new-cat-name').value = '';
+      appData.categories.push(val); window.saveDataToCloud(); renderAll(); document.getElementById('new-cat-name').value = '';
     }
     
     function removeCategory(catName) {
       if (appData.categories.length <= 1) { alert('最低1つのカテゴリが必要です。'); return; }
-      if (confirm(`「${catName}」を削除しますか？`)) { appData.categories = appData.categories.filter(c => c !== catName); saveData(); renderAll(); }
+      if (confirm(`「${catName}」を削除しますか？`)) { appData.categories = appData.categories.filter(c => c !== catName); window.saveDataToCloud(); renderAll(); }
     }
     
     function saveSettings() {
       const totalBudget = parseInt(document.getElementById('setting-total-budget').value), start = document.getElementById('setting-start-date').value, end = document.getElementById('setting-end-date').value;
       if (isNaN(totalBudget) || !start || !end || new Date(start) > new Date(end)) { alert('正しい日付・数値を入力してください。'); return; }
       appData.settings.totalBudget = totalBudget; appData.settings.startDate = start; appData.settings.endDate = end;
-      saveData(); renderAll(); alert('設定を保存しました！');
+      window.saveDataToCloud(); renderAll(); alert('設定を保存しました！');
     }
     
-    function resetAllData() {
-      if (confirm('全データをリセットしますか？')) {
-        localStorage.removeItem(STORAGE_KEY);
+    window.resetAllData = async function() {
+      if (confirm('全データをリセットしますか？この操作は取り消せません。')) {
         appData = { settings: { totalBudget: 15000, startDate: '', endDate: '' }, categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], expenses: [] };
-        loadData(); 
+        
+        const now = new Date();
+        appData.settings.startDate = formatDateForStorage(now);
+        const nextMonth = new Date(now); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(nextMonth.getDate() - 1);
+        appData.settings.endDate = formatDateForStorage(nextMonth);
+        
+        await window.saveDataToCloud();
+        
         document.getElementById('input-date').value = getTodayStr(); 
         const dateInputs = document.querySelectorAll('.date-picker');
         dateInputs.forEach(input => { if(input._flatpickr) input._flatpickr.setDate(input.value); });
+        
+        document.getElementById('setting-total-budget').value = appData.settings.totalBudget;
+        document.getElementById('setting-start-date').value = appData.settings.startDate;
+        document.getElementById('setting-end-date').value = appData.settings.endDate;
+        if(document.getElementById('setting-start-date')._flatpickr) {
+           document.getElementById('setting-start-date')._flatpickr.setDate(appData.settings.startDate);
+           document.getElementById('setting-end-date')._flatpickr.setDate(appData.settings.endDate);
+        }
+        updateBudgetPreview();
         renderAll();
+        alert('データを初期化しました。');
       }
     }
     
