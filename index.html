@@ -125,7 +125,6 @@
     .auth-form-group { margin-bottom: 16px; text-align: left; position: relative; }
     .auth-form-group label { display: block; font-size: 0.85rem; color: var(--text); margin-bottom: 6px; font-weight: 600; }
     
-    /* パスワードの目玉アイコン */
     .password-wrapper { position: relative; display: flex; align-items: center; }
     .password-wrapper input { padding-right: 44px; }
     .toggle-password { 
@@ -189,13 +188,11 @@
 </head>
 <body>
 
-  <!-- 初回読み込み時のローディング -->
   <div id="loading-overlay">
     <div class="spinner"></div>
     <div style="margin-top: 16px; color: var(--primary); font-weight: bold;">データを同期中...</div>
   </div>
 
-  <!-- 登録完了ポップアップ -->
   <div id="success-modal">
     <div class="success-box">
       <div class="success-icon">✨</div>
@@ -210,13 +207,11 @@
     </div>
   </div>
 
-  <!-- ログイン・新規登録画面 -->
   <div id="login-screen">
     <div class="auth-box">
       <div class="auth-title">ひわり手帳</div>
       <div class="auth-subtitle" id="auth-subtitle">ログインして予算管理を始めましょう</div>
 
-      <!-- ログインフォーム -->
       <form id="login-view" onsubmit="handleEmailLogin(event)">
         <div class="auth-form-group">
           <label>メールアドレス</label>
@@ -227,7 +222,6 @@
           <div class="password-wrapper">
             <input type="password" id="login-password" placeholder="パスワードを入力" required>
             <button type="button" class="toggle-password" onclick="togglePassword('login-password', this)">
-              <!-- 初期状態：非表示アイコン（スラッシュ付き） -->
               <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
             </button>
           </div>
@@ -251,7 +245,6 @@
         </div>
       </form>
 
-      <!-- 新規登録フォーム -->
       <form id="register-view" onsubmit="handleEmailRegister(event)">
         <div class="auth-form-group">
           <label>メールアドレス</label>
@@ -285,7 +278,6 @@
     </div>
   </div>
 
-  <!-- アプリ本体 -->
   <div id="app-container">
     <header>
       <h1>ひわり手帳</h1>
@@ -296,10 +288,8 @@
     </header>
     
     <main>
-      <!-- ホームタブ -->
       <div id="tab-home" class="tab-content active">
         
-        <!-- 全体の残高と予想カード -->
         <div class="card prediction-card">
           <div class="card-title" style="color: #4338CA;">
             <span>💰 全体の残高と予想</span>
@@ -365,7 +355,6 @@
         </div>
       </div>
       
-      <!-- 分析タブ -->
       <div id="tab-history" class="tab-content">
         <div class="card">
           <div class="card-title">今期の分析（設定期間）</div>
@@ -396,7 +385,6 @@
         </div>
       </div>
       
-      <!-- 設定タブ -->
       <div id="tab-settings" class="tab-content">
         <div class="card">
           <div class="card-title">📅 今期の期間設定</div>
@@ -450,7 +438,6 @@
     </nav>
   </div>
 
-  <!-- Firebaseの設定とログイン連携ロジック -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -490,13 +477,11 @@
       }
     };
 
-    // シンプルなSVGアイコンの切り替え
     window.togglePassword = function(inputId, btn) {
       const input = document.getElementById(inputId);
       const isPassword = input.type === "password";
       input.type = isPassword ? "text" : "password";
       
-      // 目（開いている）と 目（斜め線付き）のSVGを切り替え
       if (isPassword) {
         btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
       } else {
@@ -542,12 +527,10 @@
         });
     };
 
-    // タップの瞬間に同期的に直接signInWithPopupを起動（ポップアップブロックを完全回避）
     window.loginWithGoogle = function() {
       const provider = new GoogleAuthProvider();
       signInWithPopup(auth, provider)
         .then(() => {
-          // ログイン成功後にバックグラウンドで永続化を設定
           setPersistence(auth, browserLocalPersistence);
         })
         .catch((error) => { 
@@ -581,7 +564,6 @@
     });
   </script>
 
-  <!-- アプリの基本プログラム（家計簿・カレンダー機能） -->
   <script>
     let appData = { settings: { totalBudget: 15000, startDate: '', endDate: '' }, categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], expenses: [] };
     const chartColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
@@ -804,9 +786,9 @@
       }
       const avgDaily = Math.round(cycleSpent / elapsedDays), projectedTotal = cycleSpent + (avgDaily * remainingDays), diff = totalBudget - projectedTotal;
       if (diff >= 0) { 
-        msgEl.innerHTML = `いいペースです！最終日には約 <strong>¥${diff.toLocaleString()}</strong> 残る見込みです✨`; 
+        msgEl.innerHTML = `いい調子！最近の支出ペースなら最終日には約 <strong>¥${diff.toLocaleString()}</strong> 残る予定です！`; 
       } else { 
-        msgEl.innerHTML = `まずいです！今のペースだと最終日には約 <strong style="color: var(--danger);">¥${Math.abs(diff).toLocaleString()}</strong> 赤字になりそうです💦`; 
+        msgEl.innerHTML = `最近の支出ペースだと最終日に約 <strong style="color: var(--danger);">¥${Math.abs(diff).toLocaleString()}</strong> 赤字になってしまいます💦<br><span style="font-size: 0.85rem; color: var(--danger);">しばらく支出を抑えましょう…！</span>`; 
       }
     }
     
