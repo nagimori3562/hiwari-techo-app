@@ -130,7 +130,6 @@
     
     .chart-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
     
-    /* グラフチェックボタン（取消線を防ぐ完全オリジナルUI） */
     .chart-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
     .check-btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); background: #F9FAFB; cursor: pointer; transition: all 0.2s; user-select: none; }
     .check-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--text); }
@@ -138,7 +137,6 @@
     .check-btn.active::before { content: '☑'; color: var(--primary); }
     .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
 
-    /* 円グラフ */
     .pie-chart { width: 220px; height: 220px; border-radius: 50%; background: #E5E7EB; margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; }
     .pie-overbudget { background: var(--danger) !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
@@ -175,7 +173,6 @@
     .cal-cell.has-data:active { transform: scale(0.95); }
     .cal-amount { font-size: 0.55rem; font-weight: 800; word-break: break-all; line-height: 1.2; letter-spacing: -0.5px; }
     
-    /* 初回セットアップ用モーダル */
     .onboarding-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); padding: 20px; }
     .onboarding-box { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 24px; padding: 32px 24px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .ob-title { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; text-align: center; }
@@ -378,13 +375,15 @@
           <div class="card-title" style="color: var(--primary);">
             <div style="display:flex; align-items:center;">
               <svg class="icon" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2-2z"></path></svg>
-              今期の残高と予測
+              残り予算と予測
             </div>
             <span id="cycle-range-badge" style="background:#E0E7FF; color:var(--primary); font-size:0.7rem; font-weight:700; padding: 4px 8px; border-radius: 6px;"></span>
           </div>
           <div style="margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 16px;">
-            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">現在の残高（総予算: <span id="total-budget-display">¥0</span>）</div>
-            <div class="hero-amount" id="total-remaining" style="color: var(--text); font-size: 2rem;">¥0</div>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <div class="hero-amount" id="total-remaining" style="color: var(--text); font-size: 2.2rem; letter-spacing: -1px;">残り ¥0</div>
+              <div style="font-size: 0.95rem; color: var(--text-muted); font-weight: 700;">/ 総予算 <span id="total-budget-display">¥0</span></div>
+            </div>
           </div>
           <div id="prediction-message" style="font-size: 0.95rem; line-height: 1.6; font-weight: 600;"></div>
         </div>
@@ -423,13 +422,12 @@
           <div id="chart-view-trend" class="chart-view active">
             <div id="shortage-message-container"></div>
             
-            <!-- 【改善】完全オリジナルの表示/非表示トグルボタン -->
             <div class="chart-controls">
               <div id="btn-toggle-actual" class="check-btn active" onclick="toggleTrendBtn('actual')">
                 <span class="color-dot" style="background: #10B981;"></span><span id="lbl-actual">残高（実績）</span>
               </div>
               <div id="btn-toggle-predicted" class="check-btn" onclick="toggleTrendBtn('predicted')">
-                <span class="color-dot" style="background: #EF4444;"></span><span id="lbl-predicted">残高（予測）</span>
+                <span class="color-dot" style="background: #3B82F6;"></span><span id="lbl-predicted">残高（予測）</span>
               </div>
               <div id="btn-toggle-bar" class="check-btn active" onclick="toggleTrendBtn('bar')">
                 <span class="color-dot" style="background: rgba(79, 70, 229, 0.6);"></span><span>日別支出</span>
@@ -517,7 +515,7 @@
     <nav>
       <button type="button" class="nav-btn active" onclick="switchTab('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>ホーム</span></button>
       <button type="button" class="nav-btn" onclick="switchTab('history')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>分析・履歴</span></button>
-      <button type="button" class="nav-btn" onclick="switchTab('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>設定</span></button>
+      <button type="button" class="nav-btn" onclick="switchTab('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>設定</span></button>
     </nav>
   </div>
 
@@ -601,7 +599,6 @@
     let currentDailyDate = null;
     window.trendChart = null;
     
-    // 【改善】推移グラフの表示/非表示状態を管理する変数（初期状態は予測のみOFF）
     let chartVisibility = { actual: true, predicted: false, bar: true };
     
     const progressiveLineAnimation = {
@@ -744,7 +741,6 @@
       renderPrediction(); renderCategorySelects(); renderHomeHistory(); renderHistoryTab(); renderSettingsCategoryList();
     }
     
-    // 【改善】ポジティブ等の性格から「〇〇円の赤字」という数字（プレッシャー）を排除
     function getPersonalityMessage(diff, remainingDays, personality) {
       const diffFmt = Math.abs(Math.round(diff)).toLocaleString();
       if (diff >= 0) {
@@ -776,13 +772,13 @@
       const totalRemaining = totalBudget - totalCycleSpent;
       document.getElementById('total-budget-display').innerText = '¥' + totalBudget.toLocaleString();
       const totalRemEl = document.getElementById('total-remaining');
-      totalRemEl.innerText = totalRemaining < 0 ? '-¥' + Math.abs(totalRemaining).toLocaleString() : '¥' + totalRemaining.toLocaleString();
+      totalRemEl.innerText = '残り ' + (totalRemaining < 0 ? '-¥' + Math.abs(totalRemaining).toLocaleString() : '¥' + totalRemaining.toLocaleString());
       totalRemEl.style.color = totalRemaining < 0 ? 'var(--danger)' : 'var(--text)';
 
       const now = new Date(); if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; cardWrap.classList.remove('warning'); return; }
       const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1), remainingDays = Math.max(0, Math.round((end - today) / 86400000));
       
-      if (elapsedDays < 7) { msgEl.innerHTML = `期間スタート！<br><span style="color: var(--text-muted); font-size: 0.85rem;">💡 開始7日目からパートナーの残高予想が表示されます。</span>`; cardWrap.classList.remove('warning'); return; }
+      if (elapsedDays < 7) { msgEl.innerHTML = `期間スタート！<br><span style="color: var(--text-muted); font-size: 0.85rem;">💡 開始7日目からパートナーの予測が表示されます。</span>`; cardWrap.classList.remove('warning'); return; }
       
       const avgDaily = pastCycleSpent / elapsedDays, currentBalance = totalBudget - pastCycleSpent, diff = currentBalance - (avgDaily * remainingDays);
       msgEl.innerHTML = getPersonalityMessage(diff, remainingDays, appData.settings.personality);
@@ -873,7 +869,6 @@
       window.requestAnimationFrame(step);
     }
     
-    // 【改善】完全自作のチェックボタンの処理
     window.toggleTrendBtn = function(key) {
       chartVisibility[key] = !chartVisibility[key];
       syncTrendButtons();
@@ -894,7 +889,7 @@
       if (!window.trendChart) return;
       const isCumulative = (appData.settings.chartType === 'cumulative');
       if (isCumulative) {
-        window.trendChart.setDatasetVisibility(0, true); // 天井上限線
+        window.trendChart.setDatasetVisibility(0, true);
         window.trendChart.setDatasetVisibility(1, chartVisibility.actual);
         window.trendChart.setDatasetVisibility(2, chartVisibility.predicted);
         window.trendChart.setDatasetVisibility(3, chartVisibility.bar);
@@ -919,6 +914,7 @@
       const avgDaily = pastCycleSpent / elapsedDays;
       
       let labels = [], barData = [], actualLineData = [], predictedLineData = [], limitLineData = [];
+      let rawActualData = [], rawPredictedData = []; 
       let currentBalance = totalBudget, currentCumulative = 0;
       let predictedBalance = null, predictedCumulative = null;
       let maxBarAmount = 0, shortageDateStr = null;
@@ -935,31 +931,52 @@
         limitLineData.push(totalBudget);
         
         if (current <= today) {
-          currentBalance -= spent; currentCumulative += spent; actualLineData.push(isCumulative ? currentCumulative : currentBalance);
-          if (current.getTime() === today.getTime() || current.getTime() === end.getTime()) { predictedLineData.push(isCumulative ? currentCumulative : currentBalance); predictedBalance = currentBalance; predictedCumulative = currentCumulative; } else { predictedLineData.push(null); }
+          currentBalance -= spent; currentCumulative += spent; 
+          let rawVal = isCumulative ? Math.round(currentCumulative) : Math.round(currentBalance);
+          rawActualData.push(rawVal);
+          let plotVal = isCumulative ? Math.min(totalBudget, rawVal) : Math.max(0, rawVal);
+          actualLineData.push(plotVal);
+
+          if (current.getTime() === today.getTime() || current.getTime() === end.getTime()) { 
+             rawPredictedData.push(rawVal);
+             predictedLineData.push(plotVal); 
+             predictedBalance = currentBalance; 
+             predictedCumulative = currentCumulative; 
+          } else { 
+             rawPredictedData.push(null);
+             predictedLineData.push(null); 
+          }
           if (currentBalance <= 0 && !shortageDateStr) shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
         } else {
-          actualLineData.push(null); predictedBalance -= avgDaily; predictedCumulative += avgDaily; predictedLineData.push(isCumulative ? predictedCumulative : predictedBalance);
+          actualLineData.push(null); 
+          rawActualData.push(null);
+          
+          predictedBalance -= avgDaily; 
+          predictedCumulative += avgDaily; 
+          
+          let rawVal = isCumulative ? Math.round(predictedCumulative) : Math.round(predictedBalance);
+          rawPredictedData.push(rawVal);
+          let plotVal = isCumulative ? Math.min(totalBudget, rawVal) : Math.max(0, rawVal);
+          predictedLineData.push(plotVal);
+          
           if (predictedBalance <= 0 && !shortageDateStr) shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
         }
         current.setDate(current.getDate() + 1);
       }
       
       const shortageMsgContainer = document.getElementById('shortage-message-container');
-      if (shortageDateStr && appData.settings.chartType !== 'cumulative') {
+      if (shortageDateStr && !isCumulative) {
         shortageMsgContainer.innerHTML = `<div class="shortage-alert"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> 今のペースだと ${shortageDateStr} 頃に残高が 0円 になる見込みです</div>`;
       } else { shortageMsgContainer.innerHTML = ''; }
 
-      const allBalances = [...actualLineData, ...predictedLineData].filter(v => v !== null);
-      const minVal = Math.min(...allBalances), maxVal = Math.max(...allBalances);
-      
-      let yMax = isCumulative ? Math.max(totalBudget, maxVal) * 1.1 : (totalBudget > 0 ? totalBudget * 1.1 : 10000);
-      let yMin = isCumulative ? 0 : (minVal >= 0 ? 0 : minVal * 1.1);
+      let yMax = isCumulative ? totalBudget : (totalBudget > 0 ? totalBudget * 1.1 : 10000);
+      if (yMax <= 0) yMax = 10000;
+      let yMin = 0; // 残高グラフでも常に0スタート
       let y1Max = maxBarAmount === 0 ? 1000 : maxBarAmount * 2.5;
       
       const datasets = [
-        { type: 'line', label: isCumulative ? '累計（実績）' : '残高（実績）', data: actualLineData, borderColor: '#10B981', borderWidth: 3, pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
-        { type: 'line', label: isCumulative ? '累計（予測）' : '残高（予測）', data: predictedLineData, borderColor: '#EF4444', borderWidth: 3, borderDash: [5, 5], pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
+        { type: 'line', label: isCumulative ? '累計（実績）' : '残高（実績）', data: actualLineData, rawData: rawActualData, borderColor: '#10B981', borderWidth: 3, pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
+        { type: 'line', label: isCumulative ? '累計（予測）' : '残高（予測）', data: predictedLineData, rawData: rawPredictedData, borderColor: '#3B82F6', borderWidth: 3, borderDash: [5, 5], pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
         { type: 'bar', label: '日別支出', data: barData, backgroundColor: 'rgba(79, 70, 229, 0.4)', borderRadius: 4, pointStyle: 'rectRounded', yAxisID: 'y1' }
       ];
       if (isCumulative) { datasets.unshift({ type: 'line', label: '予算上限', data: limitLineData, borderColor: '#9CA3AF', borderWidth: 2, borderDash: [4, 4], pointRadius: 0, pointHitRadius: 0, yAxisID: 'y' }); }
@@ -970,9 +987,13 @@
           responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
           animation: { duration: 400, easing: 'easeOutQuart', delay: (ctx) => { if (ctx.type === 'data' && ctx.dataset.type === 'bar') { return ctx.dataIndex * 40; } return 0; } },
           plugins: {
-            // 【重要】Chart.jsのデフォルトの凡例（文字タップで取消線になるやつ）を完全に非表示！
             legend: { display: false },
-            tooltip: { callbacks: { label: function(c) { let l = c.dataset.label || ''; if(l) l+=': '; if(c.parsed.y !== null) l+='¥'+Math.round(c.parsed.y).toLocaleString(); return l; } } }
+            tooltip: { callbacks: { label: function(c) { 
+               let l = c.dataset.label || ''; if(l) l+=': '; 
+               let val = c.dataset.rawData ? c.dataset.rawData[c.dataIndex] : c.parsed.y;
+               if(val !== null && val !== undefined) l+='¥'+val.toLocaleString(); 
+               return l; 
+            } } }
           },
           scales: {
             x: { grid: { display: false }, ticks: { font: { size: 9 }, maxTicksLimit: 8 } },
@@ -982,7 +1003,6 @@
         }
       });
       
-      // 描画時に自作ボタンの状態を適用
       syncTrendButtons();
       applyTrendVisibility();
     }
