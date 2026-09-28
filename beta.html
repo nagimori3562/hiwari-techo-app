@@ -936,6 +936,47 @@
       pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
     }
     
+    // 【新機能】プログレッシブラインアニメーションの設定
+    const progressiveLineAnimation = {
+      x: {
+        type: 'number',
+        easing: 'linear',
+        duration: 40,
+        from: NaN, // 初期状態は描画スキップ（ディレイ後に現れる）
+        delay(ctx) {
+          if (ctx.type !== 'data' || ctx.xStarted) return 0;
+          ctx.xStarted = true;
+          return ctx.index * 40;
+        }
+      },
+      y: {
+        type: 'number',
+        easing: 'linear',
+        duration: 40,
+        from(ctx) {
+          if (ctx.dataset.data[ctx.index] === null) return 0;
+          
+          // 前の有効な点のY座標を探して、そこから線が伸びるようにする
+          let prevIndex = ctx.index - 1;
+          while (prevIndex >= 0 && ctx.dataset.data[prevIndex] === null) {
+            prevIndex--;
+          }
+          if (prevIndex >= 0) {
+            const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex);
+            const point = meta.data[prevIndex];
+            if (point) return point.getProps(['y'], true).y;
+          }
+          // 最初の点なら自分のY座標から開始（アニメーションなしでその場に出現）
+          return ctx.chart.scales.y.getPixelForValue(ctx.dataset.data[ctx.index]);
+        },
+        delay(ctx) {
+          if (ctx.type !== 'data' || ctx.yStarted) return 0;
+          ctx.yStarted = true;
+          return ctx.index * 40;
+        }
+      }
+    };
+
     function renderTrendChart(startStr, endStr) {
       const canvas = document.getElementById('trend-chart-canvas');
       if (window.trendChart) { window.trendChart.destroy(); }
@@ -1044,7 +1085,8 @@
               tension: 0.1,
               pointRadius: 0,
               pointHitRadius: 10,
-              yAxisID: 'y'
+              yAxisID: 'y',
+              animation: progressiveLineAnimation // 新規：左から右に伸びるアニメーション
             },
             {
               type: 'line',
@@ -1057,7 +1099,8 @@
               tension: 0.1,
               pointRadius: 0,
               pointHitRadius: 10,
-              yAxisID: 'y'
+              yAxisID: 'y',
+              animation: progressiveLineAnimation // 新規：左から右に伸びるアニメーション
             },
             {
               type: 'bar',
@@ -1074,17 +1117,15 @@
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
-          /* 新規追加：左から右へ順番に描画するアニメーション設定 */
+          /* 新規：全体のアニメーションは棒グラフのニョキニョキのみに適用 */
           animation: {
-            duration: 400, // 棒が伸びる、線が引かれるアニメーションの速さ
+            duration: 400,
             easing: 'easeOutQuart',
             delay: (context) => {
-              let delay = 0;
-              if (context.type === 'data') {
-                // 左からの順番（dataIndex）に応じて、描画開始を遅らせる
-                delay = context.dataIndex * 40; 
+              if (context.type === 'data' && context.dataset.type === 'bar') {
+                return context.dataIndex * 40;
               }
-              return delay;
+              return 0;
             }
           },
           plugins: {
