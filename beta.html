@@ -271,7 +271,6 @@
         <div class="card prediction-card">
           <div class="card-title" style="color: var(--primary);">
             <div style="display:flex; align-items:center;">
-              <!-- 修正点：誤解を招く(+)アイコンを「お財布(ウォレット)」アイコンに変更 -->
               <svg class="icon" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2-2z"></path></svg>
               全体の残高と予想
             </div>
@@ -427,7 +426,7 @@
         <span>分析・履歴</span>
       </button>
       <button type="button" class="nav-btn" onclick="switchTab('settings')">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>設定</span>
       </button>
     </nav>
@@ -597,6 +596,13 @@
     let currentY = 0;
     window.trendChart = null;
     
+    // 【重要】タイムゾーンのズレをなくし、すべての計算を日本時間（ローカル）の深夜0時に統一するヘルパー関数
+    function parseLocalDate(dateStr) {
+      if (!dateStr) return new Date();
+      const parts = dateStr.split('-');
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+
     window.onload = () => { 
       flatpickr(".date-picker", { locale: "ja", disableMobile: true, dateFormat: "Y-m-d" });
       document.getElementById('input-date').value = getTodayStr(); 
@@ -624,7 +630,7 @@
     };
     
     function formatDateForStorage(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-    function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; }
+    function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const d = parseLocalDate(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; }
     function getTodayStr() { return formatDateForStorage(new Date()); }
     
     window.loadDataFromCloud = async function() {
@@ -662,7 +668,8 @@
     
     function getPeriodDays() {
       if (!appData.settings.startDate || !appData.settings.endDate) return 1;
-      const start = new Date(appData.settings.startDate), end = new Date(appData.settings.endDate);
+      const start = parseLocalDate(appData.settings.startDate);
+      const end = parseLocalDate(appData.settings.endDate);
       if (start > end) return 1;
       const days = Math.round((end - start) / 86400000) + 1;
       return days > 0 ? days : 1;
@@ -671,7 +678,7 @@
     
     function updateBudgetPreview() {
       const startStr = document.getElementById('setting-start-date').value, endStr = document.getElementById('setting-end-date').value, total = parseInt(document.getElementById('setting-total-budget').value) || 0;
-      const start = new Date(startStr), end = new Date(endStr);
+      const start = parseLocalDate(startStr), end = parseLocalDate(endStr);
       if (startStr && endStr && start <= end) {
         const days = Math.round((end - start) / 86400000) + 1;
         document.getElementById('budget-preview').innerHTML = `期間: ${days}日間<br>1日あたりの使える目安: <strong>¥${Math.floor(total / days).toLocaleString()}</strong>`;
@@ -808,10 +815,10 @@
       const dailyMap = {};
       appData.expenses.forEach(e => { if (!dailyMap[e.date]) dailyMap[e.date] = 0; dailyMap[e.date] += e.amount; });
       const result = {}; let carryOver = 0; const dailyBudget = getDailyBudget();
-      const startDate = new Date(appData.settings.startDate), endDate = new Date(appData.settings.endDate);
+      const startDate = parseLocalDate(appData.settings.startDate), endDate = parseLocalDate(appData.settings.endDate);
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const calcEnd = new Date(Math.min(today, endDate));
-      const current = new Date(startDate); current.setHours(0, 0, 0, 0);
+      const current = parseLocalDate(appData.settings.startDate);
       while (current <= calcEnd) {
         const dateStr = formatDateForStorage(current), spent = dailyMap[dateStr] || 0, available = dailyBudget + carryOver, remaining = available - spent;
         result[dateStr] = { budget: dailyBudget, carryOver, spent, remaining };
@@ -826,7 +833,7 @@
       const balances = calculateDailyBalances(), todayStr = getTodayStr();
       let todayData = balances[todayStr];
       if (!todayData) {
-        const start = new Date(startDate); start.setHours(0, 0, 0, 0);
+        const start = parseLocalDate(startDate);
         const now = new Date(); now.setHours(0, 0, 0, 0);
         if (now < start) { todayData = { budget: dailyBudget, carryOver: 0, spent: 0, remaining: dailyBudget }; }
         else {
@@ -842,11 +849,11 @@
       renderPrediction(); renderCategorySelects(); renderHomeHistory(); renderHistoryTab(); renderSettingsCategoryList();
     }
     
-    // 修正点：ホームの予測文章とグラフの着地点の計算式を完全に統一
+    // 【修正箇所】ホーム画面の予測計算。グラフと全く同じロジックに統一
     function renderPrediction() {
       const msgEl = document.getElementById('prediction-message');
-      const start = new Date(appData.settings.startDate);
-      const end = new Date(appData.settings.endDate);
+      const start = parseLocalDate(appData.settings.startDate);
+      const end = parseLocalDate(appData.settings.endDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -854,12 +861,11 @@
       let totalCycleSpent = 0;
       let pastCycleSpent = 0;
       
-      // グラフ側と同じく、今日までの支出を集計
       appData.expenses.forEach(e => {
-        const d = new Date(e.date);
+        const d = parseLocalDate(e.date);
         if (d >= start && d <= end) {
           totalCycleSpent += e.amount;
-          if (d <= today) pastCycleSpent += e.amount;
+          if (d <= today) pastCycleSpent += e.amount; // タイムゾーンのズレなく今日までの支出を正確に集計
         }
       });
       
@@ -872,7 +878,6 @@
       const now = new Date();
       if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; return; }
       
-      // グラフ側と全く同じ計算基準を適用
       const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1);
       const remainingDays = Math.max(0, Math.round((end - today) / 86400000));
       
@@ -881,7 +886,7 @@
         return;
       }
       
-      // 平均ペースと最終残高の算出（グラフの最終プロットと完全一致）
+      // グラフの着地点と完全一致する計算式
       const avgDaily = pastCycleSpent / elapsedDays;
       const currentBalance = totalBudget - pastCycleSpent; 
       const diff = currentBalance - (avgDaily * remainingDays);
@@ -900,7 +905,8 @@
     
     function renderHomeHistory() {
       const listEl = document.getElementById('home-history-list'); listEl.innerHTML = '';
-      const recent = [...appData.expenses].sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id).slice(0, 5);
+      // 修正：文字列比較による安全で高速なソート
+      const recent = [...appData.expenses].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 5);
       if (recent.length === 0) { listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.9rem; font-weight:600;">まだ記録はありません</li>'; return; }
       recent.forEach(item => listEl.appendChild(createHistoryElement(item)));
     }
@@ -944,8 +950,8 @@
     };
     
     function renderPieChart(startStr, endStr) {
-      const start = new Date(startStr), end = new Date(endStr), catTotals = {}; let total = 0;
-      appData.expenses.forEach(e => { const d = new Date(e.date); if (d >= start && d <= end) { const cat = e.category || 'その他'; catTotals[cat] = (catTotals[cat] || 0) + e.amount; total += e.amount; } });
+      const start = parseLocalDate(startStr), end = parseLocalDate(endStr), catTotals = {}; let total = 0;
+      appData.expenses.forEach(e => { const d = parseLocalDate(e.date); if (d >= start && d <= end) { const cat = e.category || 'その他'; catTotals[cat] = (catTotals[cat] || 0) + e.amount; total += e.amount; } });
       document.getElementById('pie-total-val').innerText = `¥${total.toLocaleString()}`;
       const pieChart = document.getElementById('pie-chart'), legend = document.getElementById('chart-legend'); legend.innerHTML = '';
       if (total === 0) { pieChart.style.background = 'conic-gradient(#E5E7EB 0 100%)'; return; }
@@ -1002,25 +1008,25 @@
       const canvas = document.getElementById('trend-chart-canvas');
       if (window.trendChart) { window.trendChart.destroy(); }
       
-      const start = new Date(startStr);
-      const end = new Date(endStr);
+      const start = parseLocalDate(startStr);
+      const end = parseLocalDate(endStr);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
       const totalBudget = appData.settings.totalBudget || 0;
-      let cycleSpent = 0;
+      let pastCycleSpent = 0;
       const dailyMap = {};
       
       appData.expenses.forEach(e => {
-        const d = new Date(e.date);
+        const d = parseLocalDate(e.date);
         if (d >= start && d <= end) {
           dailyMap[e.date] = (dailyMap[e.date] || 0) + e.amount;
-          if (d <= today) cycleSpent += e.amount;
+          if (d <= today) pastCycleSpent += e.amount;
         }
       });
       
       const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1);
-      const avgDaily = cycleSpent / elapsedDays;
+      const avgDaily = pastCycleSpent / elapsedDays;
       
       let labels = [];
       let barData = [];
@@ -1032,8 +1038,7 @@
       let maxBarAmount = 0;
       let shortageDateStr = null;
       
-      const current = new Date(start);
-      current.setHours(0, 0, 0, 0);
+      const current = parseLocalDate(startStr);
       
       while (current <= end) {
         const dateStr = formatDateForStorage(current);
@@ -1214,7 +1219,7 @@
       
       const dailyTotals = {};
       appData.expenses.forEach(e => { dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount; });
-      const todayStr = getTodayStr(), periodStart = new Date(appData.settings.startDate), periodEnd = new Date(appData.settings.endDate), dailyBudget = getDailyBudget();
+      const todayStr = getTodayStr(), periodStart = parseLocalDate(appData.settings.startDate), periodEnd = parseLocalDate(appData.settings.endDate), dailyBudget = getDailyBudget();
       const today = new Date(); today.setHours(0, 0, 0, 0);
       
       for (let day = 1; day <= daysInMonth; day++) {
@@ -1239,9 +1244,9 @@
     
     function renderFullHistory(startStr, endStr) {
       const listEl = document.getElementById('history-list'); listEl.innerHTML = '';
-      const start = new Date(startStr), end = new Date(endStr), cycle = appData.expenses.filter(e => { const d = new Date(e.date); return d >= start && d <= end; });
+      const start = parseLocalDate(startStr), end = parseLocalDate(endStr), cycle = appData.expenses.filter(e => { const d = parseLocalDate(e.date); return d >= start && d <= end; });
       if (cycle.length === 0) { listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.9rem; font-weight:600;">履歴はありません</li>'; return; }
-      [...cycle].sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id).forEach(item => listEl.appendChild(createHistoryElement(item)));
+      [...cycle].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => listEl.appendChild(createHistoryElement(item)));
     }
     
     function renderSettingsCategoryList() {
