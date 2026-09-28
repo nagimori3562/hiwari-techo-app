@@ -55,7 +55,7 @@
     .prediction-card.warning .card-title { color: var(--danger) !important; }
 
     .card-title { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-    .card-title svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; margin-right: 6px; flex-shrink: 0; }
+    .card-title svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; margin-right: 6px; flex-shrink: 0; }
     
     .hero-amount { font-size: 2.4rem; font-weight: 800; color: var(--text); line-height: 1.2; letter-spacing: -1px; }
     .hero-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; }
@@ -135,7 +135,7 @@
     .check-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--text); }
     .check-btn::before { content: '☐'; margin-right: 6px; font-size: 1.2rem; line-height: 1; color: var(--text-muted); }
     .check-btn.active::before { content: '☑'; color: var(--primary); }
-    .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
 
     .pie-chart { width: 220px; height: 220px; border-radius: 50%; background: #E5E7EB; margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; }
@@ -143,7 +143,8 @@
     .pie-overbudget .pie-center { border: 4px solid var(--danger-light); }
     .pie-overbudget #pie-total-val, .pie-overbudget #pie-title-val { color: var(--danger) !important; }
     
-    .trend-chart-wrapper { position: relative; height: 220px; width: 100%; }
+    /* 修正：グラフの下部が見切れないよう高さを確保 */
+    .trend-chart-wrapper { position: relative; height: 280px; width: 100%; margin-bottom: 10px; }
     
     .shortage-alert { background: var(--danger-light); color: #991B1B; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; line-height: 1.4; animation: fadeIn 0.3s ease; border: 1px solid #FECACA; }
     .shortage-alert svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -153,7 +154,8 @@
     
     nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 12px 24px 12px; z-index: 100; }
     .nav-btn { width: 30%; background: transparent; border: none; color: #9CA3AF; font-size: 0.7rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; padding: 8px 0; border-radius: 16px; transition: all 0.2s ease; }
-    .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s; }
+    /* 修正：アイコンが潰れないように設定 */
+    .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s; flex-shrink: 0; min-width: 24px; min-height: 24px; }
     .nav-btn.active { color: var(--primary); background-color: var(--primary-light); }
     .nav-btn.active svg { stroke-width: 2.5; }
 
@@ -380,7 +382,6 @@
             <span id="cycle-range-badge" style="background:#E0E7FF; color:var(--primary); font-size:0.7rem; font-weight:700; padding: 4px 8px; border-radius: 6px;"></span>
           </div>
           <div style="margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 16px;">
-            <!-- レイアウト崩れ防止のため flex-wrap と gap を調整 -->
             <div style="display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 8px; row-gap: 4px;">
               <div class="hero-amount" id="total-remaining" style="color: var(--text); font-size: 2.2rem; letter-spacing: -1px;">残り ¥0</div>
               <div style="font-size: 0.95rem; color: var(--text-muted); font-weight: 700;">/ 総予算 <span id="total-budget-display">¥0</span></div>
@@ -1093,6 +1094,7 @@
       document.getElementById(`tab-${tabName}`).classList.add('active');
       document.querySelectorAll('.nav-btn')[tabName === 'home' ? 0 : tabName === 'history' ? 1 : 2].classList.add('active');
       
+      // タブ切り替え時に一番上までスクロール
       window.scrollTo({ top: 0, behavior: 'auto' });
       
       if (tabName === 'history') { currentCalDate = new Date(); renderHistoryTab(); }
