@@ -29,7 +29,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; -webkit-tap-highlight-color: transparent; }
     
     html { background-color: var(--bg); height: 100%; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 100px; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 130px; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
     
     #app-container { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
     
@@ -91,11 +91,10 @@
     .calc-btn.op { background: var(--primary-light); color: var(--primary); border: none; }
     .calc-btn.tax { background: #FEF3C7; color: #B45309; border: none; font-size: 0.85rem; font-weight: 700; }
     .calc-btn.clear { background: var(--danger-light); color: var(--danger); border: none; }
-    /* col-span-2 は今回から未使用となりますが一応残します */
     .col-span-2 { grid-column: span 2; }
     
     .fab { 
-      position: fixed; bottom: 94px; right: 20px; 
+      position: fixed; bottom: 116px; right: 20px; 
       padding: 0 20px; height: 56px;
       background: var(--primary); color: white; border-radius: 28px; 
       display: flex; align-items: center; justify-content: center; 
@@ -115,6 +114,17 @@
     .pie-chart { width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(#E5E7EB 0 100%); margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     
+    /* 棒グラフ用スタイル */
+    .bar-chart-container { display: flex; gap: 10px; overflow-x: auto; align-items: flex-end; height: 160px; padding-bottom: 12px; padding-top: 16px; scroll-snap-type: x mandatory; }
+    .bar-chart-container::-webkit-scrollbar { height: 6px; }
+    .bar-chart-container::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 3px; }
+    .bar-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 40px; scroll-snap-align: center; }
+    .bar-val { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-align: center; white-space: nowrap; }
+    .bar { background: var(--border); width: 24px; border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.4s ease; }
+    .bar.active { background: var(--primary); }
+    .bar.today-bar { background: var(--success); }
+    .bar-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-top: 8px; }
+
     .cat-tag-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; margin-bottom: 16px; }
     .cat-tag { background: #F9FAFB; border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     
@@ -307,6 +317,7 @@
       </div>
       
       <div id="tab-history" class="tab-content">
+        <!-- 円グラフのカード -->
         <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
@@ -323,6 +334,19 @@
               </div>
             </div>
             <div class="legend-grid" id="chart-legend"></div>
+          </div>
+        </div>
+        
+        <!-- 追加：棒グラフのカード -->
+        <div class="card">
+          <div class="card-title">
+            <div style="display:flex; align-items:center;">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+              日別の支出推移
+            </div>
+          </div>
+          <div class="bar-chart-container" id="bar-chart-container">
+            <!-- JSで動的に棒グラフが生成されます -->
           </div>
         </div>
         
@@ -444,7 +468,6 @@
         <button type="button" class="calc-btn op" onclick="calcInput('-')">－</button>
         <button type="button" class="calc-btn op" onclick="calcInput('+')">＋</button>
 
-        <!-- 修正①：0を通常サイズにし、⌫を追加 -->
         <button type="button" class="calc-btn" onclick="calcInput('0')">0</button>
         <button type="button" class="calc-btn" onclick="calcInput('.')">．</button>
         <button type="button" class="calc-btn" onclick="calcBackspace()" style="color: var(--text-muted); font-size: 1.4rem;">⌫</button>
@@ -725,7 +748,6 @@
       currentCalcStr += val; updateCalcDisplay();
     }
     
-    // 修正①：1文字削除（バックスペース）関数を追加
     function calcBackspace() {
       if (currentCalcStr.length > 0) {
         currentCalcStr = currentCalcStr.slice(0, -1);
@@ -863,7 +885,6 @@
       recent.forEach(item => listEl.appendChild(createHistoryElement(item)));
     }
     
-    // 修正②：履歴の右端に「︙（メニュー）」アイコンを追加
     function createHistoryElement(item) {
       const li = document.createElement('li'); li.className = 'history-item';
       li.onclick = () => promptHistoryAction(item.id);
@@ -886,7 +907,10 @@
     function renderHistoryTab() {
       const startStr = appData.settings.startDate, endStr = appData.settings.endDate;
       document.getElementById('history-cycle-dates').innerText = `${formatDateForDisplay(startStr)} 〜 ${formatDateForDisplay(endStr)}`;
-      renderPieChart(startStr, endStr); renderCalendar(); renderFullHistory(startStr, endStr);
+      renderPieChart(startStr, endStr);
+      renderBarChart(startStr, endStr); // 棒グラフの描画を追加
+      renderCalendar(); 
+      renderFullHistory(startStr, endStr);
     }
     
     function renderPieChart(startStr, endStr) {
@@ -904,6 +928,68 @@
         legend.appendChild(div);
       });
       pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+    }
+    
+    // 追加：棒グラフ描画ロジック
+    function renderBarChart(startStr, endStr) {
+      const container = document.getElementById('bar-chart-container');
+      container.innerHTML = '';
+      
+      const start = new Date(startStr);
+      const end = new Date(endStr);
+      const todayStr = getTodayStr();
+      
+      const dailyMap = {};
+      appData.expenses.forEach(e => {
+        const d = new Date(e.date);
+        if(d >= start && d <= end) {
+          dailyMap[e.date] = (dailyMap[e.date] || 0) + e.amount;
+        }
+      });
+      
+      let maxAmount = 0;
+      for (let date in dailyMap) {
+        if (dailyMap[date] > maxAmount) maxAmount = dailyMap[date];
+      }
+      if (maxAmount === 0) maxAmount = 1;
+      
+      const current = new Date(start);
+      current.setHours(0,0,0,0);
+      
+      while(current <= end) {
+        const dateStr = formatDateForStorage(current);
+        const amount = dailyMap[dateStr] || 0;
+        const heightPct = amount > 0 ? Math.max((amount / maxAmount) * 100, 5) : 0; 
+        
+        const wrap = document.createElement('div');
+        wrap.className = 'bar-wrap';
+        
+        const valLabel = amount > 0 ? amount.toLocaleString() : '';
+        
+        let barClass = 'bar';
+        if (amount > 0) barClass += ' active';
+        if (dateStr === todayStr) barClass += ' today-bar';
+        
+        const displayDate = `${current.getDate()}日`;
+        const finalHeight = heightPct * 0.75; 
+
+        wrap.innerHTML = `
+          <div class="bar-val">${valLabel}</div>
+          <div class="${barClass}" style="height: ${finalHeight}%;"></div>
+          <div class="bar-label" style="${dateStr === todayStr ? 'color:var(--success);font-weight:800;' : ''}">${displayDate}</div>
+        `;
+        
+        container.appendChild(wrap);
+        current.setDate(current.getDate() + 1);
+      }
+      
+      // 今日の日付まで自動スクロール
+      setTimeout(() => {
+        const todayBar = container.querySelector('.today-bar');
+        if(todayBar) {
+           todayBar.parentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }, 100);
     }
     
     function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
