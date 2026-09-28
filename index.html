@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -29,7 +30,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; -webkit-tap-highlight-color: transparent; }
     
     html { background-color: var(--bg); height: 100%; }
-    /* 修正箇所：スクロール時にリストがボタンに隠れないよう padding-bottom を 100px -> 130px に拡大 */
     body { background-color: var(--bg); color: var(--text); padding-bottom: 130px; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
     
     #app-container { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
@@ -94,15 +94,7 @@
     .calc-btn.clear { background: var(--danger-light); color: var(--danger); border: none; }
     .col-span-2 { grid-column: span 2; }
     
-    /* 修正箇所：FABの位置を bottom: 94px から bottom: 116px に持ち上げ */
-    .fab { 
-      position: fixed; bottom: 116px; right: 20px; 
-      padding: 0 20px; height: 56px;
-      background: var(--primary); color: white; border-radius: 28px; 
-      display: flex; align-items: center; justify-content: center; 
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4); border: none; cursor: pointer; 
-      z-index: 90; transition: transform 0.2s; 
-    }
+    .fab { position: fixed; bottom: 116px; right: 20px; padding: 0 20px; height: 56px; background: var(--primary); color: white; border-radius: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4); border: none; cursor: pointer; z-index: 90; transition: transform 0.2s; }
     .fab:active { transform: scale(0.96); }
     .fab svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; }
     .fab span { margin-left: 8px; font-weight: 700; font-size: 0.95rem; }
@@ -112,9 +104,21 @@
     .sheet-menu-btn.danger { color: var(--danger); }
     .sheet-menu-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
 
+    .chart-toggle-container { display: flex; justify-content: center; margin-bottom: 20px; background: #F3F4F6; padding: 4px; border-radius: 12px; width: fit-content; margin-left: auto; margin-right: auto; }
+    .chart-toggle-btn { background: transparent; border: none; padding: 8px 24px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .chart-toggle-btn.active { background: #FFFFFF; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    
+    .chart-view { display: none; width: 100%; animation: fadeIn 0.3s ease; }
+    .chart-view.active { display: block; }
+    
     .chart-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
     .pie-chart { width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(#E5E7EB 0 100%); margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    
+    .trend-chart-wrapper { position: relative; height: 260px; width: 100%; }
+    
+    .shortage-alert { background: var(--danger-light); color: #991B1B; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; line-height: 1.4; animation: fadeIn 0.3s ease; border: 1px solid #FECACA; }
+    .shortage-alert svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     
     .cat-tag-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; margin-bottom: 16px; }
     .cat-tag { background: #F9FAFB; border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -267,7 +271,7 @@
         <div class="card prediction-card">
           <div class="card-title" style="color: var(--primary);">
             <div style="display:flex; align-items:center;">
-              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+              <svg class="icon" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2-2z"></path></svg>
               全体の残高と予想
             </div>
             <span id="cycle-range-badge" style="background:#E0E7FF; font-size:0.7rem; font-weight:700; padding: 4px 8px; border-radius: 6px;"></span>
@@ -290,7 +294,7 @@
           <div class="hero-sub" id="today-detail" style="font-weight: 500;">1日あたりの目安: ¥0 | 前日繰越: ¥0</div>
         </div>
         
-        <div class="card">
+        <div class="card" style="margin-bottom: 80px;">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
               <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -304,7 +308,6 @@
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           <span>支出を入力</span>
         </button>
-
       </div>
       
       <div id="tab-history" class="tab-content">
@@ -315,16 +318,32 @@
               今期の分析
             </div>
           </div>
-          <div style="text-align: center; margin-bottom: 24px; font-size: 0.9rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
-          <div class="chart-container">
-            <div class="pie-chart" id="pie-chart">
-              <div class="pie-center">
-                <span class="pie-total-label" style="font-weight: 600;">期間内支出</span>
-                <span class="pie-total-val" id="pie-total-val">¥0</span>
-              </div>
-            </div>
-            <div class="legend-grid" id="chart-legend"></div>
+          <div style="text-align: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
+          
+          <div class="chart-toggle-container">
+            <button type="button" id="btn-chart-trend" class="chart-toggle-btn active" onclick="switchChartView('trend')">📈 推移 (予測)</button>
+            <button type="button" id="btn-chart-pie" class="chart-toggle-btn" onclick="switchChartView('pie')">📊 内訳 (円)</button>
           </div>
+          
+          <div id="chart-view-trend" class="chart-view active">
+            <div id="shortage-message-container"></div>
+            <div class="trend-chart-wrapper">
+              <canvas id="trend-chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <div id="chart-view-pie" class="chart-view">
+            <div class="chart-container">
+              <div class="pie-chart" id="pie-chart">
+                <div class="pie-center">
+                  <span class="pie-total-label" style="font-weight: 600;">期間内支出</span>
+                  <span class="pie-total-val" id="pie-total-val">¥0</span>
+                </div>
+              </div>
+              <div class="legend-grid" id="chart-legend"></div>
+            </div>
+          </div>
+          
         </div>
         
         <div class="card">
@@ -407,7 +426,7 @@
         <span>分析・履歴</span>
       </button>
       <button type="button" class="nav-btn" onclick="switchTab('settings')">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         <span>設定</span>
       </button>
     </nav>
@@ -575,7 +594,15 @@
     let currentCalDate = new Date(), currentCalcStr = "", editingId = null, actionTargetId = null;
     let startY = 0;
     let currentY = 0;
+    window.trendChart = null;
     
+    // 【重要】タイムゾーンのズレをなくし、すべての計算を日本時間（ローカル）の深夜0時に統一するヘルパー関数
+    function parseLocalDate(dateStr) {
+      if (!dateStr) return new Date();
+      const parts = dateStr.split('-');
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+
     window.onload = () => { 
       flatpickr(".date-picker", { locale: "ja", disableMobile: true, dateFormat: "Y-m-d" });
       document.getElementById('input-date').value = getTodayStr(); 
@@ -603,7 +630,7 @@
     };
     
     function formatDateForStorage(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-    function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; }
+    function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const d = parseLocalDate(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; }
     function getTodayStr() { return formatDateForStorage(new Date()); }
     
     window.loadDataFromCloud = async function() {
@@ -641,7 +668,8 @@
     
     function getPeriodDays() {
       if (!appData.settings.startDate || !appData.settings.endDate) return 1;
-      const start = new Date(appData.settings.startDate), end = new Date(appData.settings.endDate);
+      const start = parseLocalDate(appData.settings.startDate);
+      const end = parseLocalDate(appData.settings.endDate);
       if (start > end) return 1;
       const days = Math.round((end - start) / 86400000) + 1;
       return days > 0 ? days : 1;
@@ -650,7 +678,7 @@
     
     function updateBudgetPreview() {
       const startStr = document.getElementById('setting-start-date').value, endStr = document.getElementById('setting-end-date').value, total = parseInt(document.getElementById('setting-total-budget').value) || 0;
-      const start = new Date(startStr), end = new Date(endStr);
+      const start = parseLocalDate(startStr), end = parseLocalDate(endStr);
       if (startStr && endStr && start <= end) {
         const days = Math.round((end - start) / 86400000) + 1;
         document.getElementById('budget-preview').innerHTML = `期間: ${days}日間<br>1日あたりの使える目安: <strong>¥${Math.floor(total / days).toLocaleString()}</strong>`;
@@ -787,10 +815,10 @@
       const dailyMap = {};
       appData.expenses.forEach(e => { if (!dailyMap[e.date]) dailyMap[e.date] = 0; dailyMap[e.date] += e.amount; });
       const result = {}; let carryOver = 0; const dailyBudget = getDailyBudget();
-      const startDate = new Date(appData.settings.startDate), endDate = new Date(appData.settings.endDate);
+      const startDate = parseLocalDate(appData.settings.startDate), endDate = parseLocalDate(appData.settings.endDate);
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const calcEnd = new Date(Math.min(today, endDate));
-      const current = new Date(startDate); current.setHours(0, 0, 0, 0);
+      const current = parseLocalDate(appData.settings.startDate);
       while (current <= calcEnd) {
         const dateStr = formatDateForStorage(current), spent = dailyMap[dateStr] || 0, available = dailyBudget + carryOver, remaining = available - spent;
         result[dateStr] = { budget: dailyBudget, carryOver, spent, remaining };
@@ -805,7 +833,7 @@
       const balances = calculateDailyBalances(), todayStr = getTodayStr();
       let todayData = balances[todayStr];
       if (!todayData) {
-        const start = new Date(startDate); start.setHours(0, 0, 0, 0);
+        const start = parseLocalDate(startDate);
         const now = new Date(); now.setHours(0, 0, 0, 0);
         if (now < start) { todayData = { budget: dailyBudget, carryOver: 0, spent: 0, remaining: dailyBudget }; }
         else {
@@ -821,32 +849,52 @@
       renderPrediction(); renderCategorySelects(); renderHomeHistory(); renderHistoryTab(); renderSettingsCategoryList();
     }
     
+    // 【修正箇所】ホーム画面の予測計算。グラフと全く同じロジックに統一
     function renderPrediction() {
-      const msgEl = document.getElementById('prediction-message'), start = new Date(appData.settings.startDate), end = new Date(appData.settings.endDate), now = new Date();
+      const msgEl = document.getElementById('prediction-message');
+      const start = parseLocalDate(appData.settings.startDate);
+      const end = parseLocalDate(appData.settings.endDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
       const totalBudget = appData.settings.totalBudget || 0;
-      let cycleSpent = 0;
+      let totalCycleSpent = 0;
+      let pastCycleSpent = 0;
       
-      appData.expenses.forEach(e => { const d = new Date(e.date); if (d >= start && d <= end) cycleSpent += e.amount; });
+      appData.expenses.forEach(e => {
+        const d = parseLocalDate(e.date);
+        if (d >= start && d <= end) {
+          totalCycleSpent += e.amount;
+          if (d <= today) pastCycleSpent += e.amount; // タイムゾーンのズレなく今日までの支出を正確に集計
+        }
+      });
       
-      const totalRemaining = totalBudget - cycleSpent;
+      const totalRemaining = totalBudget - totalCycleSpent;
       document.getElementById('total-budget-display').innerText = '¥' + totalBudget.toLocaleString();
       const totalRemEl = document.getElementById('total-remaining');
       totalRemEl.innerText = totalRemaining < 0 ? '-¥' + Math.abs(totalRemaining).toLocaleString() : '¥' + totalRemaining.toLocaleString();
       totalRemEl.style.color = totalRemaining < 0 ? 'var(--danger)' : 'var(--text)';
 
+      const now = new Date();
       if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; return; }
       
-      const totalDays = getPeriodDays(), elapsedDays = Math.max(1, Math.round((Math.min(now, end) - start) / 86400000) + 1), remainingDays = totalDays - elapsedDays;
+      const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1);
+      const remainingDays = Math.max(0, Math.round((end - today) / 86400000));
       
       if (elapsedDays < 7) {
         msgEl.innerHTML = `期間スタート！<br><span style="color: var(--text-muted); font-size: 0.85rem;">💡 開始7日目から残高予想が表示されます。</span>`;
         return;
       }
-      const avgDaily = Math.round(cycleSpent / elapsedDays), projectedTotal = cycleSpent + (avgDaily * remainingDays), diff = totalBudget - projectedTotal;
+      
+      // グラフの着地点と完全一致する計算式
+      const avgDaily = pastCycleSpent / elapsedDays;
+      const currentBalance = totalBudget - pastCycleSpent; 
+      const diff = currentBalance - (avgDaily * remainingDays);
+
       if (diff >= 0) { 
-        msgEl.innerHTML = `いい調子！最近の支出ペースなら最終日には約 <strong style="color:var(--success);">¥${diff.toLocaleString()}</strong> 残る予定です！`; 
+        msgEl.innerHTML = `いい調子！最近の支出ペースなら最終日には約 <strong style="color:var(--success);">¥${Math.round(diff).toLocaleString()}</strong> 残る予定です！`; 
       } else { 
-        msgEl.innerHTML = `最近の支出ペースだと最終日に約 <strong style="color: var(--danger);">¥${Math.abs(diff).toLocaleString()}</strong> 赤字になってしまいます💦<br><span style="font-size: 0.85rem; color: var(--danger);">しばらく支出を抑えましょう…！</span>`; 
+        msgEl.innerHTML = `最近の支出ペースだと最終日に約 <strong style="color: var(--danger);">¥${Math.round(Math.abs(diff)).toLocaleString()}</strong> 赤字になってしまいます💦<br><span style="font-size: 0.85rem; color: var(--danger);">しばらく支出を抑えましょう…！</span>`; 
       }
     }
     
@@ -857,7 +905,8 @@
     
     function renderHomeHistory() {
       const listEl = document.getElementById('home-history-list'); listEl.innerHTML = '';
-      const recent = [...appData.expenses].sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id).slice(0, 5);
+      // 修正：文字列比較による安全で高速なソート
+      const recent = [...appData.expenses].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 5);
       if (recent.length === 0) { listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.9rem; font-weight:600;">まだ記録はありません</li>'; return; }
       recent.forEach(item => listEl.appendChild(createHistoryElement(item)));
     }
@@ -884,12 +933,25 @@
     function renderHistoryTab() {
       const startStr = appData.settings.startDate, endStr = appData.settings.endDate;
       document.getElementById('history-cycle-dates').innerText = `${formatDateForDisplay(startStr)} 〜 ${formatDateForDisplay(endStr)}`;
-      renderPieChart(startStr, endStr); renderCalendar(); renderFullHistory(startStr, endStr);
+      
+      renderPieChart(startStr, endStr);
+      renderTrendChart(startStr, endStr);
+      
+      renderCalendar(); 
+      renderFullHistory(startStr, endStr);
     }
     
+    window.switchChartView = function(type) {
+      document.querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.chart-view').forEach(view => view.classList.remove('active'));
+      
+      document.getElementById(`btn-chart-${type}`).classList.add('active');
+      document.getElementById(`chart-view-${type}`).classList.add('active');
+    };
+    
     function renderPieChart(startStr, endStr) {
-      const start = new Date(startStr), end = new Date(endStr), catTotals = {}; let total = 0;
-      appData.expenses.forEach(e => { const d = new Date(e.date); if (d >= start && d <= end) { const cat = e.category || 'その他'; catTotals[cat] = (catTotals[cat] || 0) + e.amount; total += e.amount; } });
+      const start = parseLocalDate(startStr), end = parseLocalDate(endStr), catTotals = {}; let total = 0;
+      appData.expenses.forEach(e => { const d = parseLocalDate(e.date); if (d >= start && d <= end) { const cat = e.category || 'その他'; catTotals[cat] = (catTotals[cat] || 0) + e.amount; total += e.amount; } });
       document.getElementById('pie-total-val').innerText = `¥${total.toLocaleString()}`;
       const pieChart = document.getElementById('pie-chart'), legend = document.getElementById('chart-legend'); legend.innerHTML = '';
       if (total === 0) { pieChart.style.background = 'conic-gradient(#E5E7EB 0 100%)'; return; }
@@ -904,6 +966,247 @@
       pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
     }
     
+    const progressiveLineAnimation = {
+      x: {
+        type: 'number',
+        easing: 'linear',
+        duration: 40,
+        from: NaN, 
+        delay(ctx) {
+          if (ctx.type !== 'data' || ctx.xStarted) return 0;
+          ctx.xStarted = true;
+          return ctx.index * 40;
+        }
+      },
+      y: {
+        type: 'number',
+        easing: 'linear',
+        duration: 40,
+        from(ctx) {
+          if (ctx.dataset.data[ctx.index] === null) return 0;
+          
+          let prevIndex = ctx.index - 1;
+          while (prevIndex >= 0 && ctx.dataset.data[prevIndex] === null) {
+            prevIndex--;
+          }
+          if (prevIndex >= 0) {
+            const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex);
+            const point = meta.data[prevIndex];
+            if (point) return point.getProps(['y'], true).y;
+          }
+          return ctx.chart.scales.y.getPixelForValue(ctx.dataset.data[ctx.index]);
+        },
+        delay(ctx) {
+          if (ctx.type !== 'data' || ctx.yStarted) return 0;
+          ctx.yStarted = true;
+          return ctx.index * 40;
+        }
+      }
+    };
+
+    function renderTrendChart(startStr, endStr) {
+      const canvas = document.getElementById('trend-chart-canvas');
+      if (window.trendChart) { window.trendChart.destroy(); }
+      
+      const start = parseLocalDate(startStr);
+      const end = parseLocalDate(endStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const totalBudget = appData.settings.totalBudget || 0;
+      let pastCycleSpent = 0;
+      const dailyMap = {};
+      
+      appData.expenses.forEach(e => {
+        const d = parseLocalDate(e.date);
+        if (d >= start && d <= end) {
+          dailyMap[e.date] = (dailyMap[e.date] || 0) + e.amount;
+          if (d <= today) pastCycleSpent += e.amount;
+        }
+      });
+      
+      const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1);
+      const avgDaily = pastCycleSpent / elapsedDays;
+      
+      let labels = [];
+      let barData = [];
+      let actualLineData = [];
+      let predictedLineData = [];
+      
+      let currentBalance = totalBudget;
+      let predictedBalance = null;
+      let maxBarAmount = 0;
+      let shortageDateStr = null;
+      
+      const current = parseLocalDate(startStr);
+      
+      while (current <= end) {
+        const dateStr = formatDateForStorage(current);
+        labels.push(`${current.getMonth() + 1}/${current.getDate()}`);
+        
+        const spent = dailyMap[dateStr] || 0;
+        barData.push(spent);
+        if (spent > maxBarAmount) maxBarAmount = spent;
+        
+        if (current <= today) {
+          currentBalance -= spent;
+          actualLineData.push(currentBalance);
+          
+          if (current.getTime() === today.getTime() || current.getTime() === end.getTime()) {
+            predictedLineData.push(currentBalance);
+            predictedBalance = currentBalance;
+          } else {
+            predictedLineData.push(null);
+          }
+          
+          if (currentBalance <= 0 && !shortageDateStr) {
+            shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
+          }
+          
+        } else {
+          actualLineData.push(null);
+          predictedBalance -= avgDaily;
+          predictedLineData.push(predictedBalance);
+          
+          if (predictedBalance <= 0 && !shortageDateStr) {
+            shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
+          }
+        }
+        current.setDate(current.getDate() + 1);
+      }
+      
+      const shortageMsgContainer = document.getElementById('shortage-message-container');
+      if (shortageDateStr) {
+        shortageMsgContainer.innerHTML = `
+          <div class="shortage-alert">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            今のペースだと ${shortageDateStr} 頃に残高が 0円 になる見込みです
+          </div>
+        `;
+      } else {
+        shortageMsgContainer.innerHTML = '';
+      }
+
+      const allBalances = [...actualLineData, ...predictedLineData].filter(v => v !== null);
+      const minBalance = Math.min(...allBalances);
+      
+      let yMax = totalBudget > 0 ? totalBudget * 1.1 : 10000;
+      let yMin = minBalance >= 0 ? 0 : minBalance * 1.1;
+      
+      let y1Max = maxBarAmount === 0 ? 1000 : maxBarAmount * 2.5;
+      let y1Min = yMin < 0 ? y1Max * (yMin / yMax) : 0;
+      
+      window.trendChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'line',
+              label: '残高（実績）',
+              data: actualLineData,
+              borderColor: '#10B981',
+              borderWidth: 3,
+              pointStyle: 'line',
+              tension: 0.1,
+              pointRadius: 0,
+              pointHitRadius: 10,
+              yAxisID: 'y',
+              animation: progressiveLineAnimation 
+            },
+            {
+              type: 'line',
+              label: '残高（予測）',
+              data: predictedLineData,
+              borderColor: '#EF4444',
+              borderWidth: 3,
+              borderDash: [5, 5],
+              pointStyle: 'line',
+              tension: 0.1,
+              pointRadius: 0,
+              pointHitRadius: 10,
+              yAxisID: 'y',
+              animation: progressiveLineAnimation 
+            },
+            {
+              type: 'bar',
+              label: '日別支出',
+              data: barData,
+              backgroundColor: 'rgba(79, 70, 229, 0.4)',
+              borderRadius: 4,
+              pointStyle: 'rectRounded',
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          animation: {
+            duration: 400,
+            easing: 'easeOutQuart',
+            delay: (context) => {
+              if (context.type === 'data' && context.dataset.type === 'bar') {
+                return context.dataIndex * 40;
+              }
+              return 0;
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { 
+                usePointStyle: true,
+                font: { size: 10, family: 'sans-serif' }, 
+                boxWidth: 16, 
+                padding: 12 
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) label += ': ';
+                  if (context.parsed.y !== null) {
+                    label += '¥' + Math.round(context.parsed.y).toLocaleString();
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 9 }, maxTicksLimit: 8 }
+            },
+            y: {
+              type: 'linear', display: true, position: 'left',
+              min: yMin, max: yMax,
+              title: { display: true, text: '残高', font: { size: 9 } },
+              ticks: { font: { size: 9 }, callback: function(value){ return '¥' + value.toLocaleString(); } },
+              grid: {
+                color: function(context) {
+                  if (context.tick && context.tick.value === 0) return 'rgba(239, 68, 68, 0.5)';
+                  return '#E5E7EB';
+                },
+                lineWidth: function(context) {
+                  if (context.tick && context.tick.value === 0) return 2;
+                  return 1;
+                }
+              }
+            },
+            y1: {
+              type: 'linear', display: false, position: 'right', 
+              min: y1Min, max: y1Max
+            }
+          }
+        }
+      });
+    }
+    
     function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
     
     function renderCalendar() {
@@ -916,7 +1219,7 @@
       
       const dailyTotals = {};
       appData.expenses.forEach(e => { dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount; });
-      const todayStr = getTodayStr(), periodStart = new Date(appData.settings.startDate), periodEnd = new Date(appData.settings.endDate), dailyBudget = getDailyBudget();
+      const todayStr = getTodayStr(), periodStart = parseLocalDate(appData.settings.startDate), periodEnd = parseLocalDate(appData.settings.endDate), dailyBudget = getDailyBudget();
       const today = new Date(); today.setHours(0, 0, 0, 0);
       
       for (let day = 1; day <= daysInMonth; day++) {
@@ -941,9 +1244,9 @@
     
     function renderFullHistory(startStr, endStr) {
       const listEl = document.getElementById('history-list'); listEl.innerHTML = '';
-      const start = new Date(startStr), end = new Date(endStr), cycle = appData.expenses.filter(e => { const d = new Date(e.date); return d >= start && d <= end; });
+      const start = parseLocalDate(startStr), end = parseLocalDate(endStr), cycle = appData.expenses.filter(e => { const d = parseLocalDate(e.date); return d >= start && d <= end; });
       if (cycle.length === 0) { listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.9rem; font-weight:600;">履歴はありません</li>'; return; }
-      [...cycle].sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id).forEach(item => listEl.appendChild(createHistoryElement(item)));
+      [...cycle].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => listEl.appendChild(createHistoryElement(item)));
     }
     
     function renderSettingsCategoryList() {
