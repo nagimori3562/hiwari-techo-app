@@ -74,7 +74,6 @@
     .btn:active { transform: scale(0.98); opacity: 0.9; }
     .btn-secondary { background-color: #F3F4F6; color: var(--text); border: none; padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
     
-    /* ラジオボタン型の選択UI */
     .radio-option { display: flex; align-items: flex-start; padding: 16px; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; background: var(--card-bg); }
     .radio-option input[type="radio"] { margin-right: 12px; margin-top: 4px; accent-color: var(--primary); transform: scale(1.3); cursor: pointer; }
     .radio-option:hover { border-color: #C7D2FE; }
@@ -131,6 +130,14 @@
     
     .chart-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
     
+    /* グラフチェックボタン（取消線を防ぐ完全オリジナルUI） */
+    .chart-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 16px; }
+    .check-btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); background: #F9FAFB; cursor: pointer; transition: all 0.2s; user-select: none; }
+    .check-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--text); }
+    .check-btn::before { content: '☐'; margin-right: 6px; font-size: 1.2rem; line-height: 1; color: var(--text-muted); }
+    .check-btn.active::before { content: '☑'; color: var(--primary); }
+    .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+
     /* 円グラフ */
     .pie-chart { width: 220px; height: 220px; border-radius: 50%; background: #E5E7EB; margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; }
@@ -207,20 +214,16 @@
 </head>
 <body>
 
-  <!-- ローディング -->
   <div id="loading-overlay">
     <div class="spinner"></div>
     <div style="margin-top: 16px; color: var(--primary); font-weight: 700;">同期中...</div>
   </div>
 
-  <!-- 初回オンボーディング（性格・グラフ選択） -->
   <div id="onboarding-overlay" class="onboarding-overlay">
-    <!-- Step 1: 性格選択 -->
     <div class="onboarding-box" id="ob-step-1">
       <div class="ob-title">パートナーを選ぼう</div>
       <div class="ob-desc">ひわり手帳へようこそ！<br>あなたをサポートするパートナーの性格を選んでください。（あとで変更可能です）</div>
       
-      <!-- ラジオボタンUIに変更 -->
       <label class="radio-option selected" onclick="selectObRadio(this, 'ob-personality')">
         <input type="radio" name="ob-personality" value="positive" checked>
         <div>
@@ -249,11 +252,9 @@
           <div class="ob-option-desc">「今日もおつかれさまぁ〜。のんびりいこ〜」<br>癒やしを提供してくれる、マイペースタイプ。</div>
         </div>
       </label>
-      
       <button type="button" class="btn" style="margin-top: 24px;" onclick="nextObStep()">次へ</button>
     </div>
 
-    <!-- Step 2: グラフ選択 -->
     <div class="onboarding-box" id="ob-step-2" style="display:none;">
       <div class="ob-title">グラフのタイプを選ぼう</div>
       <div class="ob-desc">あなたの安心できる見せ方を選んでください。<br>分析タブの推移グラフに反映されます。</div>
@@ -272,7 +273,6 @@
           <div class="ob-option-desc">お金が減るグラフを見ると焦ってしまう人向け。<br>予算の天井まであとどれくらい余裕があるか確認できます。</div>
         </div>
       </label>
-      
       <button type="button" class="btn" style="margin-top: 24px;" onclick="finishOnboarding()">設定して始める！</button>
     </div>
   </div>
@@ -293,7 +293,6 @@
     </div>
   </div>
 
-  <!-- ログイン画面 -->
   <div id="login-screen">
     <div class="auth-box">
       <div class="auth-title">ひわり手帳</div>
@@ -416,15 +415,27 @@
           </div>
           <div style="text-align: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
           
-          <!-- 順序を推移グラフ → 予算メーターに変更 -->
           <div class="chart-toggle-container">
             <button type="button" id="btn-chart-trend" class="chart-toggle-btn active" onclick="switchChartView('trend')">📈 推移グラフ</button>
             <button type="button" id="btn-chart-pie" class="chart-toggle-btn" onclick="switchChartView('pie')">📊 予算メーター</button>
           </div>
           
-          <!-- 初期表示を推移グラフに設定 -->
           <div id="chart-view-trend" class="chart-view active">
             <div id="shortage-message-container"></div>
+            
+            <!-- 【改善】完全オリジナルの表示/非表示トグルボタン -->
+            <div class="chart-controls">
+              <div id="btn-toggle-actual" class="check-btn active" onclick="toggleTrendBtn('actual')">
+                <span class="color-dot" style="background: #10B981;"></span><span id="lbl-actual">残高（実績）</span>
+              </div>
+              <div id="btn-toggle-predicted" class="check-btn" onclick="toggleTrendBtn('predicted')">
+                <span class="color-dot" style="background: #EF4444;"></span><span id="lbl-predicted">残高（予測）</span>
+              </div>
+              <div id="btn-toggle-bar" class="check-btn active" onclick="toggleTrendBtn('bar')">
+                <span class="color-dot" style="background: rgba(79, 70, 229, 0.6);"></span><span>日別支出</span>
+              </div>
+            </div>
+            
             <div class="trend-chart-wrapper">
               <canvas id="trend-chart-canvas"></canvas>
             </div>
@@ -463,7 +474,6 @@
       <div id="tab-settings" class="tab-content">
         <div class="card" style="background: var(--primary-light);">
           <div class="card-title" style="color: var(--primary);">パートナー＆表示設定</div>
-          
           <div class="input-group">
             <label style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: block; margin-bottom: 6px;">パートナーの性格</label>
             <select id="setting-personality" onchange="updateSettingsLive()" style="background:#fff; border-color:var(--primary); color:var(--primary);">
@@ -473,7 +483,6 @@
               <option value="yuru">🍵 ゆるふわ</option>
             </select>
           </div>
-
           <div class="input-group">
             <label style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: block; margin-bottom: 6px;">推移グラフのタイプ</label>
             <select id="setting-chart-type" onchange="updateSettingsLive()" style="background:#fff; border-color:var(--primary); color:var(--primary);">
@@ -484,36 +493,18 @@
         </div>
 
         <div class="card">
-          <div class="card-title">
-            <div style="display:flex; align-items:center;">
-              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-              予算・期間設定
-            </div>
-          </div>
-          <div class="input-group">
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">今期の総予算 (円)</label>
-            <input type="number" id="setting-total-budget" value="15000" oninput="updateBudgetPreview()">
-          </div>
-          <div class="input-group">
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">開始日</label>
-            <input type="text" id="setting-start-date" class="date-picker" readonly onchange="updateBudgetPreview()">
-          </div>
-          <div class="input-group">
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">終了日</label>
-            <input type="text" id="setting-end-date" class="date-picker" readonly onchange="updateBudgetPreview()">
-          </div>
+          <div class="card-title"><div style="display:flex; align-items:center;"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>予算・期間設定</div></div>
+          <div class="input-group"><label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">今期の総予算 (円)</label><input type="number" id="setting-total-budget" value="15000" oninput="updateBudgetPreview()"></div>
+          <div class="input-group"><label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">開始日</label><input type="text" id="setting-start-date" class="date-picker" readonly onchange="updateBudgetPreview()"></div>
+          <div class="input-group"><label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">終了日</label><input type="text" id="setting-end-date" class="date-picker" readonly onchange="updateBudgetPreview()"></div>
           <div id="budget-preview" style="font-size: 0.85rem; font-weight: 600; color: var(--primary); line-height: 1.5; padding: 16px; background: var(--primary-light); border-radius: 12px;"></div>
         </div>
         
         <div class="card">
           <div class="card-title">カテゴリ設定</div>
           <div class="cat-tag-list" id="settings-cat-list"></div>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="new-cat-name" placeholder="新しいカテゴリ名">
-            <button type="button" class="btn" style="width: auto; padding: 14px 20px;" onclick="addCategory()">追加</button>
-          </div>
+          <div style="display: flex; gap: 8px;"><input type="text" id="new-cat-name" placeholder="新しいカテゴリ名"><button type="button" class="btn" style="width: auto; padding: 14px 20px;" onclick="addCategory()">追加</button></div>
         </div>
-        
         <button type="button" class="btn" style="margin-bottom: 32px;" onclick="saveSettings()">設定を保存する</button>
         
         <div class="card" style="background: var(--danger-light);">
@@ -524,48 +515,27 @@
     </main>
     
     <nav>
-      <button type="button" class="nav-btn active" onclick="switchTab('home')">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        <span>ホーム</span>
-      </button>
-      <button type="button" class="nav-btn" onclick="switchTab('history')">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        <span>分析・履歴</span>
-      </button>
-      <button type="button" class="nav-btn" onclick="switchTab('settings')">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        <span>設定</span>
-      </button>
+      <button type="button" class="nav-btn active" onclick="switchTab('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>ホーム</span></button>
+      <button type="button" class="nav-btn" onclick="switchTab('history')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>分析・履歴</span></button>
+      <button type="button" class="nav-btn" onclick="switchTab('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>設定</span></button>
     </nav>
   </div>
 
   <div id="daily-detail-overlay" class="bottom-sheet-overlay" onclick="closeDailyDetail(event)">
     <div class="bottom-sheet" id="daily-detail-sheet" onclick="event.stopPropagation()">
       <div class="sheet-drag-area" id="daily-sheet-drag-area"><div class="sheet-handle"></div></div>
-      <button type="button" class="sheet-close-btn" onclick="closeDailyDetail(true)">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
-      
+      <button type="button" class="sheet-close-btn" onclick="closeDailyDetail(true)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
       <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-muted); text-align: center; margin-bottom: 8px;" id="daily-detail-title">9月15日(火) の記録</div>
       <div style="font-size: 2.8rem; font-weight: 800; color: var(--text); text-align: center; margin-bottom: 24px; letter-spacing: -1px;" id="daily-detail-total">¥0</div>
-      
-      <div style="border-top: 2px dashed var(--border); padding-top: 16px;">
-        <ul id="daily-detail-list" class="history-list"></ul>
-      </div>
-
-      <!-- カレンダーから直接支出を追加できるボタンを追加 -->
-      <button type="button" class="btn" style="margin-top: 20px;" onclick="openInputFromDaily()">
-        ＋ この日に支出を追加
-      </button>
+      <div style="border-top: 2px dashed var(--border); padding-top: 16px;"><ul id="daily-detail-list" class="history-list"></ul></div>
+      <button type="button" class="btn" style="margin-top: 20px;" onclick="openInputFromDaily()">＋ この日に支出を追加</button>
     </div>
   </div>
 
   <div id="input-modal-overlay" class="bottom-sheet-overlay" onclick="closeInputModal(event)">
     <div class="bottom-sheet" id="input-bottom-sheet" onclick="event.stopPropagation()">
       <div class="sheet-drag-area" id="sheet-drag-area"><div class="sheet-handle"></div></div>
-      <button type="button" class="sheet-close-btn" onclick="closeInputModal(true)">
-        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
+      <button type="button" class="sheet-close-btn" onclick="closeInputModal(true)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
       <div style="font-weight: 800; font-size: 1.2rem; margin-bottom: 20px; color: var(--text);" id="input-modal-title">支出を記録</div>
       <div class="calc-display" id="calc-display">0</div>
       <div class="calc-grid">
@@ -574,13 +544,8 @@
         <button type="button" class="calc-btn" onclick="calcInput('1')">1</button><button type="button" class="calc-btn" onclick="calcInput('2')">2</button><button type="button" class="calc-btn" onclick="calcInput('3')">3</button><button type="button" class="calc-btn op" onclick="calcInput('-')">－</button><button type="button" class="calc-btn op" onclick="calcInput('+')">＋</button>
         <button type="button" class="calc-btn" onclick="calcInput('0')">0</button><button type="button" class="calc-btn" onclick="calcInput('.')">．</button><button type="button" class="calc-btn" onclick="calcBackspace()" style="color: var(--text-muted); font-size: 1.4rem;">⌫</button><button type="button" class="calc-btn clear" onclick="calcClear()">AC</button><button type="button" class="calc-btn op" onclick="calcEval()" style="background:var(--primary); color:white;">＝</button>
       </div>
-      <div class="flex-inputs">
-        <input type="text" id="input-date" class="date-picker" readonly>
-        <select id="input-category"></select>
-      </div>
-      <div class="input-group">
-        <input type="text" id="input-note" placeholder="メモ（例：コンビニなど）">
-      </div>
+      <div class="flex-inputs"><input type="text" id="input-date" class="date-picker" readonly><select id="input-category"></select></div>
+      <div class="input-group"><input type="text" id="input-note" placeholder="メモ（例：コンビニなど）"></div>
       <button type="button" class="btn" id="add-btn" onclick="addExpense()">記録する</button>
     </div>
   </div>
@@ -588,14 +553,8 @@
   <div id="history-action-overlay" class="bottom-sheet-overlay" onclick="closeHistoryAction(event)">
     <div class="bottom-sheet" style="padding: 16px 24px 32px 24px;" onclick="event.stopPropagation()">
       <div class="sheet-handle" style="margin-bottom: 20px;"></div>
-      <button type="button" class="sheet-menu-btn" onclick="openEditFromAction()">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-        編集する
-      </button>
-      <button type="button" class="sheet-menu-btn danger" onclick="deleteFromAction()">
-        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        削除する
-      </button>
+      <button type="button" class="sheet-menu-btn" onclick="openEditFromAction()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>編集する</button>
+      <button type="button" class="sheet-menu-btn danger" onclick="deleteFromAction()"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>削除する</button>
     </div>
   </div>
 
@@ -613,8 +572,7 @@
       else { document.getElementById('register-view').style.display = 'none'; document.getElementById('login-view').style.display = 'block'; document.getElementById('auth-subtitle').innerText = 'ログインして予算管理を始めましょう'; }
     };
     window.togglePassword = function(inputId, btn) {
-      const input = document.getElementById(inputId), isPassword = input.type === "password";
-      input.type = isPassword ? "text" : "password";
+      const input = document.getElementById(inputId), isPassword = input.type === "password"; input.type = isPassword ? "text" : "password";
       btn.innerHTML = isPassword ? `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>` : `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
     };
     window.handleEmailLogin = function(e) { e.preventDefault(); const email = document.getElementById('login-email').value, pass = document.getElementById('login-password').value, rememberMe = document.getElementById('remember-me').checked; setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence).then(() => signInWithEmailAndPassword(auth, email, pass)).catch(() => alert("ログインに失敗しました。")); };
@@ -624,13 +582,11 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
+        document.getElementById('login-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex';
         document.getElementById('user-name').innerText = (user.displayName || user.email.split('@')[0]) + 'さん';
         if (window.loadDataFromCloud) await window.loadDataFromCloud();
       } else {
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('app-container').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex'; document.getElementById('app-container').style.display = 'none';
       }
       document.getElementById('loading-overlay').style.display = 'none';
     });
@@ -645,7 +601,9 @@
     let currentDailyDate = null;
     window.trendChart = null;
     
-    // プログレッシブアニメーション設定（推移グラフ用）
+    // 【改善】推移グラフの表示/非表示状態を管理する変数（初期状態は予測のみOFF）
+    let chartVisibility = { actual: true, predicted: false, bar: true };
+    
     const progressiveLineAnimation = {
       x: { type: 'number', easing: 'linear', duration: 40, from: NaN, delay(ctx) { if (ctx.type !== 'data' || ctx.xStarted) return 0; ctx.xStarted = true; return ctx.index * 40; } },
       y: { type: 'number', easing: 'linear', duration: 40, from(ctx) { if (ctx.dataset.data[ctx.index] === null) return 0; let prevIndex = ctx.index - 1; while (prevIndex >= 0 && ctx.dataset.data[prevIndex] === null) prevIndex--; if (prevIndex >= 0) { const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex); const point = meta.data[prevIndex]; if (point) return point.getProps(['y'], true).y; } return ctx.chart.scales.y.getPixelForValue(ctx.dataset.data[ctx.index]); }, delay(ctx) { if (ctx.type !== 'data' || ctx.yStarted) return 0; ctx.yStarted = true; return ctx.index * 40; } }
@@ -687,14 +645,11 @@
       
       if (!appData.settings.personality || !appData.settings.chartType) {
         document.getElementById('onboarding-overlay').style.display = 'flex';
-      } else {
-        syncSettingsToUI(); renderAll();
-      }
+      } else { syncSettingsToUI(); renderAll(); }
     };
     
     window.saveDataToCloud = async function() { if (!window.auth || !window.auth.currentUser) return; try { await window.setDoc(window.doc(window.db, "users", window.auth.currentUser.uid), appData); } catch (e) {} };
 
-    // --- オンボーディング関連 ---
     window.selectObRadio = function(element, groupName) {
       element.parentElement.querySelectorAll('.radio-option').forEach(el => el.classList.remove('selected'));
       element.classList.add('selected');
@@ -789,23 +744,24 @@
       renderPrediction(); renderCategorySelects(); renderHomeHistory(); renderHistoryTab(); renderSettingsCategoryList();
     }
     
+    // 【改善】ポジティブ等の性格から「〇〇円の赤字」という数字（プレッシャー）を排除
     function getPersonalityMessage(diff, remainingDays, personality) {
       const diffFmt = Math.abs(Math.round(diff)).toLocaleString();
       if (diff >= 0) {
         switch(personality) {
-          case 'positive': return `🌻 いい調子ですね！このペースなら最終日に約 <strong style="color:var(--success);">¥${diffFmt}</strong> 残る予定です。ご褒美が買えるかも！`;
+          case 'positive': return `🌻 いい調子ですね！このペースならご褒美が買えるかも！`;
           case 'calm': return `👓 現在のペースは適正です。最終予測残高は約 <strong style="color:var(--success);">¥${diffFmt}</strong> です。`;
-          case 'hot': return `🔥 よく我慢した！！今日の君は最高に輝いてるぞ！この調子で残り <strong style="color:var(--success);">¥${diffFmt}</strong> を守り抜け！！`;
-          case 'yuru': return `🍵 今日もおつかれさまぁ〜。予算、まだ <strong style="color:var(--success);">¥${diffFmt}</strong> くらい余裕あるみたいだねぇ。のんびりいこ〜。`;
-          default: return `最終日に約 <strong style="color:var(--success);">¥${diffFmt}</strong> 残る予測です。`;
+          case 'hot': return `🔥 よく我慢した！！今日の君は最高に輝いてるぞ！この調子で予算を守り抜け！！`;
+          case 'yuru': return `🍵 今日もおつかれさまぁ〜。予算、まだ余裕あるみたいだねぇ。のんびりいこ〜。`;
+          default: return `最終予測残高は約 <strong style="color:var(--success);">¥${diffFmt}</strong> です。`;
         }
       } else {
         switch(personality) {
-          case 'positive': return `🌻 今週は少し使いすぎちゃいましたが大丈夫！最終的に <strong style="color:var(--danger);">¥${diffFmt}</strong> 赤字になるペースですが、ここから挽回できますよ！`;
+          case 'positive': return `🌻 少しペースが早いですが大丈夫！ここから少しずつ工夫していけば、しっかり挽回できますよ！`;
           case 'calm': return `👓 予算超過のペースです。最終的に約 <strong style="color:var(--danger);">¥${diffFmt}</strong> の赤字が予測されます。支出の見直しを推奨します。`;
-          case 'hot': return `🔥 諦めるな！！ここからが本当の勝負だ！約 <strong style="color:var(--danger);">¥${diffFmt}</strong> 赤字になりそうだけど、気合で乗り切れば挽回できるぞ！！`;
-          case 'yuru': return `🍵 ちょっとピンチかも〜？💦 赤字が <strong style="color:var(--danger);">¥${diffFmt}</strong> くらい出そうだから、明日から少しだけ節約してみよっかぁ〜。`;
-          default: return `最終日に約 <strong style="color:var(--danger);">¥${diffFmt}</strong> 赤字になる予測です。`;
+          case 'hot': return `🔥 諦めるな！！ここからが本当の勝負だ！気合で乗り切れば必ず挽回できるぞ！！`;
+          case 'yuru': return `🍵 ちょっとピンチかも〜？💦 明日から少しだけ節約してみよっかぁ〜。`;
+          default: return `最終的に約 <strong style="color:var(--danger);">¥${diffFmt}</strong> 赤字になる予測です。`;
         }
       }
     }
@@ -853,7 +809,6 @@
       document.getElementById('history-cycle-dates').innerText = `${formatDateForDisplay(startStr)} 〜 ${formatDateForDisplay(endStr)}`;
       renderCalendar(); renderFullHistory(startStr, endStr);
       
-      // 現在アクティブなグラフを再描画（アニメーションを効かせるため）
       if (document.getElementById('chart-view-pie').classList.contains('active')) {
         renderPieChart(startStr, endStr);
       } else {
@@ -861,7 +816,6 @@
       }
     }
     
-    // タブ切り替え時に必ずアニメーションつきで再描画する
     window.switchChartView = function(type) {
       document.querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.chart-view').forEach(view => view.classList.remove('active'));
@@ -873,7 +827,6 @@
       else renderTrendChart(startStr, endStr);
     };
     
-    // JSアニメーションで右回りに描画する円グラフ
     function renderPieChart(startStr, endStr) {
       const start = parseLocalDate(startStr), end = parseLocalDate(endStr), catTotals = {}; let totalSpent = 0;
       appData.expenses.forEach(e => { const d = parseLocalDate(e.date); if (d >= start && d <= end) { const cat = e.category || 'その他'; catTotals[cat] = (catTotals[cat] || 0) + e.amount; totalSpent += e.amount; } });
@@ -895,15 +848,14 @@
       
       pieChart.classList.remove('pie-overbudget');
       
-      // カスタムアニメーション
       let startTimestamp = null;
-      const duration = 700; // アニメーション時間
+      const duration = 700;
       const sortedCats = Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]);
       
       function step(timestamp) {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const easeProgress = 1 - Math.pow(1 - progress, 4); // easeOutQuart
+        const easeProgress = 1 - Math.pow(1 - progress, 4);
         
         let gradientParts = [], currentDegree = 0;
         sortedCats.forEach((cat, index) => {
@@ -921,7 +873,39 @@
       window.requestAnimationFrame(step);
     }
     
-    // アニメーションつきで再描画する推移グラフ
+    // 【改善】完全自作のチェックボタンの処理
+    window.toggleTrendBtn = function(key) {
+      chartVisibility[key] = !chartVisibility[key];
+      syncTrendButtons();
+      applyTrendVisibility();
+    };
+    
+    function syncTrendButtons() {
+      ['actual', 'predicted', 'bar'].forEach(key => {
+        const btn = document.getElementById(`btn-toggle-${key}`);
+        if (btn) {
+          if (chartVisibility[key]) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+    }
+
+    function applyTrendVisibility() {
+      if (!window.trendChart) return;
+      const isCumulative = (appData.settings.chartType === 'cumulative');
+      if (isCumulative) {
+        window.trendChart.setDatasetVisibility(0, true); // 天井上限線
+        window.trendChart.setDatasetVisibility(1, chartVisibility.actual);
+        window.trendChart.setDatasetVisibility(2, chartVisibility.predicted);
+        window.trendChart.setDatasetVisibility(3, chartVisibility.bar);
+      } else {
+        window.trendChart.setDatasetVisibility(0, chartVisibility.actual);
+        window.trendChart.setDatasetVisibility(1, chartVisibility.predicted);
+        window.trendChart.setDatasetVisibility(2, chartVisibility.bar);
+      }
+      window.trendChart.update();
+    }
+
     function renderTrendChart(startStr, endStr) {
       const canvas = document.getElementById('trend-chart-canvas');
       if (window.trendChart) { window.trendChart.destroy(); window.trendChart = null; }
@@ -940,6 +924,9 @@
       let maxBarAmount = 0, shortageDateStr = null;
       const current = parseLocalDate(startStr);
       const isCumulative = (appData.settings.chartType === 'cumulative');
+      
+      document.getElementById('lbl-actual').innerText = isCumulative ? '累計（実績）' : '残高（実績）';
+      document.getElementById('lbl-predicted').innerText = isCumulative ? '累計（予測）' : '残高（予測）';
       
       while (current <= end) {
         const dateStr = formatDateForStorage(current), spent = dailyMap[dateStr] || 0;
@@ -983,7 +970,8 @@
           responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
           animation: { duration: 400, easing: 'easeOutQuart', delay: (ctx) => { if (ctx.type === 'data' && ctx.dataset.type === 'bar') { return ctx.dataIndex * 40; } return 0; } },
           plugins: {
-            legend: { display: true, position: 'top', labels: { usePointStyle: true, font: { size: 10 }, boxWidth: 16 } },
+            // 【重要】Chart.jsのデフォルトの凡例（文字タップで取消線になるやつ）を完全に非表示！
+            legend: { display: false },
             tooltip: { callbacks: { label: function(c) { let l = c.dataset.label || ''; if(l) l+=': '; if(c.parsed.y !== null) l+='¥'+Math.round(c.parsed.y).toLocaleString(); return l; } } }
           },
           scales: {
@@ -993,6 +981,10 @@
           }
         }
       });
+      
+      // 描画時に自作ボタンの状態を適用
+      syncTrendButtons();
+      applyTrendVisibility();
     }
     
     function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
@@ -1021,7 +1013,6 @@
             cell.innerHTML = `<div style="font-weight:600;">${day}</div><div class="cal-amount">¥${spent.toLocaleString()}</div>`;
           } else { cell.innerHTML = `<div style="font-weight:600;">${day}</div><div class="cal-amount"></div>`; }
           
-          // 期間内であれば、0円の日もタップ可能に！
           cell.classList.add('has-data');
           cell.onclick = () => openDailyDetail(dateStr, spent);
         }
@@ -1050,7 +1041,6 @@
     
     window.closeDailyDetail = function(e) { if(e === true || (e && e.target === document.getElementById('daily-detail-overlay'))) { document.getElementById('daily-detail-overlay').style.display = 'none'; document.body.style.overflow = 'auto'; } };
 
-    // カレンダー詳細から直接入力画面を開く
     window.openInputFromDaily = function() {
       closeDailyDetail(true);
       setTimeout(() => {
@@ -1064,7 +1054,7 @@
         
         const bs = document.getElementById('input-bottom-sheet'); bs.style.transform = '';
         document.getElementById('input-modal-overlay').style.display = 'flex'; document.body.style.overflow = 'hidden';
-      }, 300); // ボトムシートが閉じるアニメーションを少し待つ
+      }, 300);
     };
 
     function renderFullHistory(startStr, endStr) { const listEl = document.getElementById('history-list'); listEl.innerHTML = ''; const start = parseLocalDate(startStr), end = parseLocalDate(endStr), cycle = appData.expenses.filter(e => { const d = parseLocalDate(e.date); return d >= start && d <= end; }); if (cycle.length === 0) { listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.9rem; font-weight:600;">履歴はありません</li>'; return; } [...cycle].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => listEl.appendChild(createHistoryElement(item))); }
