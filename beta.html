@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+  
+  <!-- 今回追加：グラフ専用のライブラリ（Chart.js） -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -110,21 +113,22 @@
     .sheet-menu-btn.danger { color: var(--danger); }
     .sheet-menu-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
 
+    /* グラフ切り替えタブのスタイル */
+    .chart-toggle-container { display: flex; justify-content: center; margin-bottom: 20px; background: #F3F4F6; padding: 4px; border-radius: 12px; width: fit-content; margin-left: auto; margin-right: auto; }
+    .chart-toggle-btn { background: transparent; border: none; padding: 8px 24px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .chart-toggle-btn.active { background: #FFFFFF; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    
+    /* グラフ表示領域 */
+    .chart-view { display: none; width: 100%; animation: fadeIn 0.3s ease; }
+    .chart-view.active { display: block; }
+    
     .chart-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
     .pie-chart { width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(#E5E7EB 0 100%); margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     
-    /* 棒グラフ用スタイル */
-    .bar-chart-container { display: flex; gap: 10px; overflow-x: auto; align-items: flex-end; height: 160px; padding-bottom: 12px; padding-top: 16px; scroll-snap-type: x mandatory; }
-    .bar-chart-container::-webkit-scrollbar { height: 6px; }
-    .bar-chart-container::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 3px; }
-    .bar-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 40px; scroll-snap-align: center; }
-    .bar-val { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-align: center; white-space: nowrap; }
-    .bar { background: var(--border); width: 24px; border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.4s ease; }
-    .bar.active { background: var(--primary); }
-    .bar.today-bar { background: var(--success); }
-    .bar-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-top: 8px; }
-
+    /* 新規グラフ用コンテナ */
+    .trend-chart-wrapper { position: relative; height: 280px; width: 100%; }
+    
     .cat-tag-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; margin-bottom: 16px; }
     .cat-tag { background: #F9FAFB; border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     
@@ -313,11 +317,11 @@
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           <span>支出を入力</span>
         </button>
-
       </div>
       
       <div id="tab-history" class="tab-content">
-        <!-- 円グラフのカード -->
+        
+        <!-- 追加：グラフの切り替え機能がついた分析カード -->
         <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
@@ -325,28 +329,32 @@
               今期の分析
             </div>
           </div>
-          <div style="text-align: center; margin-bottom: 24px; font-size: 0.9rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
-          <div class="chart-container">
-            <div class="pie-chart" id="pie-chart">
-              <div class="pie-center">
-                <span class="pie-total-label" style="font-weight: 600;">期間内支出</span>
-                <span class="pie-total-val" id="pie-total-val">¥0</span>
+          <div style="text-align: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
+          
+          <!-- グラフ切り替えタブ -->
+          <div class="chart-toggle-container">
+            <button type="button" id="btn-chart-pie" class="chart-toggle-btn active" onclick="switchChartView('pie')">📊 内訳 (円)</button>
+            <button type="button" id="btn-chart-trend" class="chart-toggle-btn" onclick="switchChartView('trend')">📈 推移 (予測)</button>
+          </div>
+          
+          <!-- 従来の円グラフ（内訳） -->
+          <div id="chart-view-pie" class="chart-view active">
+            <div class="chart-container">
+              <div class="pie-chart" id="pie-chart">
+                <div class="pie-center">
+                  <span class="pie-total-label" style="font-weight: 600;">期間内支出</span>
+                  <span class="pie-total-val" id="pie-total-val">¥0</span>
+                </div>
               </div>
-            </div>
-            <div class="legend-grid" id="chart-legend"></div>
-          </div>
-        </div>
-        
-        <!-- 追加：棒グラフのカード -->
-        <div class="card">
-          <div class="card-title">
-            <div style="display:flex; align-items:center;">
-              <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-              日別の支出推移
+              <div class="legend-grid" id="chart-legend"></div>
             </div>
           </div>
-          <div class="bar-chart-container" id="bar-chart-container">
-            <!-- JSで動的に棒グラフが生成されます -->
+          
+          <!-- 新規：Chart.jsを使った複合グラフ（推移と予測） -->
+          <div id="chart-view-trend" class="chart-view">
+            <div class="trend-chart-wrapper">
+              <canvas id="trend-chart-canvas"></canvas>
+            </div>
           </div>
         </div>
         
@@ -598,6 +606,9 @@
     let currentCalDate = new Date(), currentCalcStr = "", editingId = null, actionTargetId = null;
     let startY = 0;
     let currentY = 0;
+    
+    // グラフ管理用のグローバル変数
+    window.trendChart = null;
     
     window.onload = () => { 
       flatpickr(".date-picker", { locale: "ja", disableMobile: true, dateFormat: "Y-m-d" });
@@ -907,11 +918,22 @@
     function renderHistoryTab() {
       const startStr = appData.settings.startDate, endStr = appData.settings.endDate;
       document.getElementById('history-cycle-dates').innerText = `${formatDateForDisplay(startStr)} 〜 ${formatDateForDisplay(endStr)}`;
+      
       renderPieChart(startStr, endStr);
-      renderBarChart(startStr, endStr); // 棒グラフの描画を追加
+      renderTrendChart(startStr, endStr); // 新規：Chart.jsの描画
+      
       renderCalendar(); 
       renderFullHistory(startStr, endStr);
     }
+    
+    // 分析タブ内のグラフ切り替えロジック
+    window.switchChartView = function(type) {
+      document.querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.chart-view').forEach(view => view.classList.remove('active'));
+      
+      document.getElementById(`btn-chart-${type}`).classList.add('active');
+      document.getElementById(`chart-view-${type}`).classList.add('active');
+    };
     
     function renderPieChart(startStr, endStr) {
       const start = new Date(startStr), end = new Date(endStr), catTotals = {}; let total = 0;
@@ -930,66 +952,151 @@
       pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
     }
     
-    // 追加：棒グラフ描画ロジック
-    function renderBarChart(startStr, endStr) {
-      const container = document.getElementById('bar-chart-container');
-      container.innerHTML = '';
+    // 新規：Chart.jsを使った複合グラフ描画ロジック
+    function renderTrendChart(startStr, endStr) {
+      const canvas = document.getElementById('trend-chart-canvas');
+      if (window.trendChart) { window.trendChart.destroy(); }
       
       const start = new Date(startStr);
       const end = new Date(endStr);
-      const todayStr = getTodayStr();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       
+      const totalBudget = appData.settings.totalBudget || 0;
+      let cycleSpent = 0;
       const dailyMap = {};
+      
+      // 支出の集計
       appData.expenses.forEach(e => {
         const d = new Date(e.date);
-        if(d >= start && d <= end) {
+        if (d >= start && d <= end) {
           dailyMap[e.date] = (dailyMap[e.date] || 0) + e.amount;
+          if(d <= today) cycleSpent += e.amount;
         }
       });
       
-      let maxAmount = 0;
-      for (let date in dailyMap) {
-        if (dailyMap[date] > maxAmount) maxAmount = dailyMap[date];
-      }
-      if (maxAmount === 0) maxAmount = 1;
+      const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1);
+      const avgDaily = cycleSpent / elapsedDays;
+      
+      let labels = [];
+      let barData = [];
+      let actualLineData = [];
+      let predictedLineData = [];
+      
+      let currentBalance = totalBudget;
+      let predictedBalance = null;
+      let maxBarAmount = 0;
       
       const current = new Date(start);
-      current.setHours(0,0,0,0);
+      current.setHours(0, 0, 0, 0);
       
-      while(current <= end) {
+      // グラフのデータを1日ずつ計算して配列を作る
+      while (current <= end) {
         const dateStr = formatDateForStorage(current);
-        const amount = dailyMap[dateStr] || 0;
-        const heightPct = amount > 0 ? Math.max((amount / maxAmount) * 100, 5) : 0; 
+        labels.push(`${current.getMonth() + 1}/${current.getDate()}`);
         
-        const wrap = document.createElement('div');
-        wrap.className = 'bar-wrap';
+        const spent = dailyMap[dateStr] || 0;
+        barData.push(spent);
+        if (spent > maxBarAmount) maxBarAmount = spent;
         
-        const valLabel = amount > 0 ? amount.toLocaleString() : '';
-        
-        let barClass = 'bar';
-        if (amount > 0) barClass += ' active';
-        if (dateStr === todayStr) barClass += ' today-bar';
-        
-        const displayDate = `${current.getDate()}日`;
-        const finalHeight = heightPct * 0.75; 
-
-        wrap.innerHTML = `
-          <div class="bar-val">${valLabel}</div>
-          <div class="${barClass}" style="height: ${finalHeight}%;"></div>
-          <div class="bar-label" style="${dateStr === todayStr ? 'color:var(--success);font-weight:800;' : ''}">${displayDate}</div>
-        `;
-        
-        container.appendChild(wrap);
+        if (current <= today) {
+          // 今日までの実績（実線）
+          currentBalance -= spent;
+          actualLineData.push(currentBalance);
+          
+          if (current.getTime() === today.getTime() || current.getTime() === end.getTime()) {
+            predictedLineData.push(currentBalance);
+            predictedBalance = currentBalance;
+          } else {
+            predictedLineData.push(null);
+          }
+        } else {
+          // 明日以降の予測（点線）
+          actualLineData.push(null);
+          predictedBalance -= avgDaily;
+          predictedLineData.push(predictedBalance);
+        }
         current.setDate(current.getDate() + 1);
       }
       
-      // 今日の日付まで自動スクロール
-      setTimeout(() => {
-        const todayBar = container.querySelector('.today-bar');
-        if(todayBar) {
-           todayBar.parentNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      window.trendChart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'line',
+              label: '残高（実績）',
+              data: actualLineData,
+              borderColor: '#10B981', // 緑
+              borderWidth: 3,
+              tension: 0.1,
+              pointRadius: 0,
+              pointHitRadius: 10,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: '残高（予測）',
+              data: predictedLineData,
+              borderColor: '#EF4444', // 赤
+              borderWidth: 3,
+              borderDash: [5, 5],
+              tension: 0.1,
+              pointRadius: 0,
+              pointHitRadius: 10,
+              yAxisID: 'y'
+            },
+            {
+              type: 'bar',
+              label: '日別支出',
+              data: barData,
+              backgroundColor: 'rgba(79, 70, 229, 0.4)', // 薄い青
+              borderRadius: 4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { font: { size: 10, family: 'sans-serif' }, boxWidth: 12, padding: 8 }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) label += ': ';
+                  if (context.parsed.y !== null) {
+                    label += '¥' + Math.round(context.parsed.y).toLocaleString();
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 9 }, maxTicksLimit: 8 } // 俯瞰できるようラベルを間引く
+            },
+            y: {
+              type: 'linear', display: true, position: 'left',
+              title: { display: true, text: '残高', font: { size: 9 } },
+              ticks: { font: { size: 9 }, callback: function(value){ return '¥' + value.toLocaleString(); } }
+            },
+            y1: {
+              type: 'linear', display: false, position: 'right', min: 0,
+              max: maxBarAmount * 2.5 || 1000 // 棒グラフが上まで突き抜けないよう最大値を設定
+            }
+          }
         }
-      }, 100);
+      });
     }
     
     function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
