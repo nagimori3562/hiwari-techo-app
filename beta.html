@@ -321,11 +321,20 @@
           <div style="text-align: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
           
           <div class="chart-toggle-container">
-            <button type="button" id="btn-chart-pie" class="chart-toggle-btn active" onclick="switchChartView('pie')">📊 内訳 (円)</button>
-            <button type="button" id="btn-chart-trend" class="chart-toggle-btn" onclick="switchChartView('trend')">📈 推移 (予測)</button>
+            <!-- 変更点：推移をデフォルトにし、左側に配置 -->
+            <button type="button" id="btn-chart-trend" class="chart-toggle-btn active" onclick="switchChartView('trend')">📈 推移 (予測)</button>
+            <button type="button" id="btn-chart-pie" class="chart-toggle-btn" onclick="switchChartView('pie')">📊 内訳 (円)</button>
           </div>
           
-          <div id="chart-view-pie" class="chart-view active">
+          <!-- 変更点：推移をデフォルトのactiveクラスに設定 -->
+          <div id="chart-view-trend" class="chart-view active">
+            <div id="shortage-message-container"></div>
+            <div class="trend-chart-wrapper">
+              <canvas id="trend-chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <div id="chart-view-pie" class="chart-view">
             <div class="chart-container">
               <div class="pie-chart" id="pie-chart">
                 <div class="pie-center">
@@ -337,12 +346,6 @@
             </div>
           </div>
           
-          <div id="chart-view-trend" class="chart-view">
-            <div id="shortage-message-container"></div>
-            <div class="trend-chart-wrapper">
-              <canvas id="trend-chart-canvas"></canvas>
-            </div>
-          </div>
         </div>
         
         <div class="card">
@@ -936,13 +939,12 @@
       pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
     }
     
-    // 【新機能】プログレッシブラインアニメーションの設定
     const progressiveLineAnimation = {
       x: {
         type: 'number',
         easing: 'linear',
         duration: 40,
-        from: NaN, // 初期状態は描画スキップ（ディレイ後に現れる）
+        from: NaN, 
         delay(ctx) {
           if (ctx.type !== 'data' || ctx.xStarted) return 0;
           ctx.xStarted = true;
@@ -956,7 +958,6 @@
         from(ctx) {
           if (ctx.dataset.data[ctx.index] === null) return 0;
           
-          // 前の有効な点のY座標を探して、そこから線が伸びるようにする
           let prevIndex = ctx.index - 1;
           while (prevIndex >= 0 && ctx.dataset.data[prevIndex] === null) {
             prevIndex--;
@@ -966,7 +967,6 @@
             const point = meta.data[prevIndex];
             if (point) return point.getProps(['y'], true).y;
           }
-          // 最初の点なら自分のY座標から開始（アニメーションなしでその場に出現）
           return ctx.chart.scales.y.getPixelForValue(ctx.dataset.data[ctx.index]);
         },
         delay(ctx) {
@@ -1086,7 +1086,7 @@
               pointRadius: 0,
               pointHitRadius: 10,
               yAxisID: 'y',
-              animation: progressiveLineAnimation // 新規：左から右に伸びるアニメーション
+              animation: progressiveLineAnimation 
             },
             {
               type: 'line',
@@ -1100,7 +1100,7 @@
               pointRadius: 0,
               pointHitRadius: 10,
               yAxisID: 'y',
-              animation: progressiveLineAnimation // 新規：左から右に伸びるアニメーション
+              animation: progressiveLineAnimation 
             },
             {
               type: 'bar',
@@ -1117,7 +1117,6 @@
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
-          /* 新規：全体のアニメーションは棒グラフのニョキニョキのみに適用 */
           animation: {
             duration: 400,
             easing: 'easeOutQuart',
