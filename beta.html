@@ -17,6 +17,7 @@
       --primary: #4F46E5;
       --primary-light: #EEF2FF;
       --success: #10B981;
+      --success-light: #D1FAE5;
       --danger: #EF4444;
       --danger-light: #FEE2E2;
       --bg: #F3F4F6;
@@ -32,7 +33,6 @@
     
     #app-container { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
     
-    /* モダンなヘッダー */
     header { background-color: var(--card-bg); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     header h1 { font-size: 1.1rem; font-weight: 800; color: var(--primary); margin: 0; letter-spacing: -0.5px; }
     
@@ -41,11 +41,13 @@
     .tab-content.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* カードデザインをフラット＆モダンに */
     .card { background: var(--card-bg); border-radius: 20px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: none; width: 100%; max-width: 100%; overflow: hidden; position: relative; }
     .prediction-card { background: linear-gradient(135deg, #EEF2FF 0%, #FFFFFF 100%); }
     .card-title { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    
+    /* 修正①：アイコンの右下切れを直すため、svgタグにviewBox="0 0 24 24"を必ず指定 */
     .card-title svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; margin-right: 6px; vertical-align: -3px; }
+    
     .hero-amount { font-size: 2.4rem; font-weight: 800; color: var(--text); line-height: 1.2; letter-spacing: -1px; }
     .hero-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; }
     
@@ -63,7 +65,6 @@
     .btn:active { transform: scale(0.98); opacity: 0.9; }
     .btn-secondary { background-color: #F3F4F6; color: var(--text); border: none; padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
     
-    /* 履歴リストを1行のモダンなレイアウトに変更 */
     .history-list { list-style: none; }
     .history-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background-color 0.2s; }
     .history-item:active { background-color: #F9FAFB; }
@@ -75,13 +76,19 @@
     .history-date { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
     .history-amount { font-weight: 800; font-size: 1.1rem; color: var(--text); margin-left: 12px; flex-shrink: 0; letter-spacing: -0.5px; }
     
-    /* ボトムシート（電卓やメニュー用） */
     .bottom-sheet-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-end; justify-content: center; backdrop-filter: blur(2px); }
     .bottom-sheet { background: var(--card-bg); width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1); max-height: 90vh; overflow-y: auto; position: relative; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .sheet-handle { width: 40px; height: 5px; background: #E5E7EB; border-radius: 3px; margin: 0 auto 20px auto; }
     
-    /* 電卓スタイル */
+    /* 修正②：スワイプで閉じられるようにドラッグ領域を拡大 */
+    .sheet-drag-area { padding-bottom: 16px; cursor: grab; }
+    .sheet-drag-area:active { cursor: grabbing; }
+    .sheet-handle { width: 40px; height: 5px; background: #E5E7EB; border-radius: 3px; margin: 0 auto; }
+    
+    /* 修正②：右上に閉じるボタンを明示的に配置 */
+    .sheet-close-btn { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: #F3F4F6; border-radius: 16px; display: flex; align-items: center; justify-content: center; border: none; color: var(--text-muted); cursor: pointer; }
+    .sheet-close-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+    
     .calc-display { background: #F9FAFB; padding: 16px; border-radius: 16px; font-size: 2rem; font-weight: 800; text-align: right; min-height: 70px; margin-bottom: 16px; border: 1px solid var(--border); overflow-x: auto; white-space: nowrap; letter-spacing: -1px; }
     .calc-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
     .calc-btn { padding: 16px 0; font-size: 1.2rem; font-weight: 600; border-radius: 12px; background: #FFFFFF; color: var(--text); border: 1px solid var(--border); cursor: pointer; transition: background-color 0.1s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
@@ -91,18 +98,15 @@
     .calc-btn.clear { background: var(--danger-light); color: var(--danger); border: none; }
     .col-span-2 { grid-column: span 2; }
     
-    /* フローティングアクションボタン (FAB) */
     .fab { position: fixed; bottom: 84px; right: 20px; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 30px; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4); border: none; cursor: pointer; z-index: 90; transition: transform 0.2s; }
     .fab:active { transform: scale(0.9); }
     .fab svg { width: 28px; height: 28px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; }
     
-    /* メニューボトムシート用ボタン */
-    .sheet-menu-btn { width: 100%; padding: 16px; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border); font-size: 1rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 12px; }
+    .sheet-menu-btn { width: 100%; padding: 16px; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border); font-size: 1rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 12px; cursor: pointer; }
     .sheet-menu-btn:last-child { border-bottom: none; }
     .sheet-menu-btn.danger { color: var(--danger); }
     .sheet-menu-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-    /* チャート周り */
     .chart-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
     .pie-chart { width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(#E5E7EB 0 100%); margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
@@ -116,7 +120,6 @@
     .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .nav-btn.active svg { fill: var(--primary-light); }
 
-    /* その他既存のスタイル（カレンダー・ログイン等）は省略せず統合 */
     .legend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; }
     .legend-item { display: flex; align-items: center; font-size: 0.9rem; }
     .legend-color { width: 14px; height: 14px; border-radius: 4px; margin-right: 12px; flex-shrink: 0; }
@@ -126,8 +129,11 @@
     .cal-cell { aspect-ratio: 1; border-radius: 8px; padding: 4px; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.75rem; background-color: #F9FAFB; min-width: 0; overflow: hidden; }
     .cal-cell.empty { background-color: transparent; border: none; }
     .cal-cell.today { font-weight: 800; background-color: #fff; box-shadow: 0 0 0 2px var(--primary); }
+    
+    /* 修正③：カレンダーの背景色を復活 */
     .cal-cell.budget-ok { background-color: var(--success-light); color: #065F46; }
     .cal-cell.budget-over { background-color: var(--danger-light); color: #991B1B; }
+    
     .cal-amount { font-size: 0.55rem; font-weight: 800; word-break: break-all; line-height: 1.2; letter-spacing: -0.5px; }
     
     #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; }
@@ -265,7 +271,8 @@
         <div class="card prediction-card">
           <div class="card-title" style="color: var(--primary);">
             <div style="display:flex; align-items:center;">
-              <svg class="icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+              <!-- 修正① viewBox追加 -->
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
               全体の残高と予想
             </div>
             <span id="cycle-range-badge" style="background:#E0E7FF; font-size:0.7rem; font-weight:700; padding: 4px 8px; border-radius: 6px;"></span>
@@ -280,7 +287,8 @@
         <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
-              <svg class="icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <!-- 修正① viewBox追加 -->
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               今日使えるお金（繰越込み）
             </div>
           </div>
@@ -291,7 +299,8 @@
         <div class="card" style="margin-bottom: 80px;">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
-              <svg class="icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <!-- 修正① viewBox追加 -->
+              <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
               最近の記録
             </div>
           </div>
@@ -310,7 +319,7 @@
         <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
-              <svg class="icon"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+              <svg class="icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
               今期の分析
             </div>
           </div>
@@ -346,7 +355,7 @@
         <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
-              <svg class="icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               期間設定
             </div>
           </div>
@@ -363,7 +372,7 @@
         <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
-              <svg class="icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
               予算設定
             </div>
           </div>
@@ -377,7 +386,7 @@
         <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
-              <svg class="icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+              <svg class="icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
               カテゴリ設定
             </div>
           </div>
@@ -415,8 +424,16 @@
 
   <!-- 入力用ボトムシート（電卓） -->
   <div id="input-modal-overlay" class="bottom-sheet-overlay" onclick="closeInputModal(event)">
-    <div class="bottom-sheet" onclick="event.stopPropagation()">
-      <div class="sheet-handle"></div>
+    <div class="bottom-sheet" id="input-bottom-sheet" onclick="event.stopPropagation()">
+      <!-- 修正②：スワイプで閉じるためのドラッグ領域 -->
+      <div class="sheet-drag-area" id="sheet-drag-area">
+        <div class="sheet-handle"></div>
+      </div>
+      <!-- 修正②：明示的な閉じるボタン -->
+      <button type="button" class="sheet-close-btn" onclick="closeInputModal(true)">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      
       <div style="font-weight: 800; font-size: 1.2rem; margin-bottom: 20px; color: var(--text);" id="input-modal-title">支出を記録</div>
       
       <div class="calc-display" id="calc-display">0</div>
@@ -459,7 +476,7 @@
   <!-- 履歴アクション用ボトムシート -->
   <div id="history-action-overlay" class="bottom-sheet-overlay" onclick="closeHistoryAction(event)">
     <div class="bottom-sheet" style="padding: 16px 24px 32px 24px;" onclick="event.stopPropagation()">
-      <div class="sheet-handle"></div>
+      <div class="sheet-handle" style="margin-bottom: 20px;"></div>
       <button type="button" class="sheet-menu-btn" onclick="openEditFromAction()">
         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
         編集する
@@ -568,9 +585,39 @@
     const chartColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
     let currentCalDate = new Date(), currentCalcStr = "", editingId = null, actionTargetId = null;
     
+    // スワイプで閉じる機能の実装
+    let startY = 0;
+    let currentY = 0;
+    
     window.onload = () => { 
       flatpickr(".date-picker", { locale: "ja", disableMobile: true, dateFormat: "Y-m-d" });
       document.getElementById('input-date').value = getTodayStr(); 
+      
+      const dragArea = document.getElementById('sheet-drag-area');
+      const bottomSheet = document.getElementById('input-bottom-sheet');
+      
+      dragArea.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        bottomSheet.style.transition = 'none';
+      }, {passive: true});
+      
+      dragArea.addEventListener('touchmove', (e) => {
+        currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+        if (diff > 0) {
+          bottomSheet.style.transform = `translateY(${diff}px)`;
+        }
+      }, {passive: true});
+      
+      dragArea.addEventListener('touchend', (e) => {
+        bottomSheet.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+        const diff = currentY - startY;
+        if (diff > 100) {
+          closeInputModal(true); // 100px以上下げたら閉じる
+        } else {
+          bottomSheet.style.transform = `translateY(0)`; // 元に戻す
+        }
+      });
     };
     
     function formatDateForStorage(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -630,6 +677,8 @@
     
     // UI Modal Functions
     window.openInputModal = function() {
+      const bs = document.getElementById('input-bottom-sheet');
+      bs.style.transform = ''; // スワイプの残骸をリセット
       document.getElementById('input-modal-overlay').style.display = 'flex';
       document.body.style.overflow = 'hidden';
       if (!editingId) {
@@ -643,10 +692,11 @@
       }
     };
     window.closeInputModal = function(e) {
-      if(e && e.target !== document.getElementById('input-modal-overlay')) return;
-      document.getElementById('input-modal-overlay').style.display = 'none';
-      document.body.style.overflow = 'auto';
-      editingId = null;
+      if(e === true || (e && e.target === document.getElementById('input-modal-overlay'))) {
+        document.getElementById('input-modal-overlay').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        editingId = null;
+      }
     };
     
     window.promptHistoryAction = function(id) {
@@ -728,7 +778,7 @@
       } else { appData.expenses.push(newItem); }
       
       window.saveDataToCloud(); 
-      closeInputModal();
+      closeInputModal(true);
       renderAll();
       
       document.getElementById('sm-date').innerText = newItem.date;
