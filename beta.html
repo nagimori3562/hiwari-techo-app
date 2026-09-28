@@ -117,7 +117,6 @@
     
     .trend-chart-wrapper { position: relative; height: 260px; width: 100%; }
     
-    /* 枯渇日アラートのスタイル */
     .shortage-alert { background: var(--danger-light); color: #991B1B; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; line-height: 1.4; animation: fadeIn 0.3s ease; border: 1px solid #FECACA; }
     .shortage-alert svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     
@@ -268,6 +267,7 @@
     
     <main>
       <div id="tab-home" class="tab-content active">
+        
         <div class="card prediction-card">
           <div class="card-title" style="color: var(--primary);">
             <div style="display:flex; align-items:center;">
@@ -338,7 +338,6 @@
           </div>
           
           <div id="chart-view-trend" class="chart-view">
-            <!-- 追加：枯渇日アラートメッセージコンテナ -->
             <div id="shortage-message-container"></div>
             <div class="trend-chart-wrapper">
               <canvas id="trend-chart-canvas"></canvas>
@@ -937,7 +936,6 @@
       pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
     }
     
-    // 修正①・②・③：本格的な複合グラフの設定
     function renderTrendChart(startStr, endStr) {
       const canvas = document.getElementById('trend-chart-canvas');
       if (window.trendChart) { window.trendChart.destroy(); }
@@ -970,7 +968,7 @@
       let currentBalance = totalBudget;
       let predictedBalance = null;
       let maxBarAmount = 0;
-      let shortageDateStr = null; // 枯渇日を記録する変数
+      let shortageDateStr = null;
       
       const current = new Date(start);
       current.setHours(0, 0, 0, 0);
@@ -994,7 +992,6 @@
             predictedLineData.push(null);
           }
           
-          // 今日までの時点で既に赤字になった場合
           if (currentBalance <= 0 && !shortageDateStr) {
             shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
           }
@@ -1004,7 +1001,6 @@
           predictedBalance -= avgDaily;
           predictedLineData.push(predictedBalance);
           
-          // 未来の予測で赤字になる場合
           if (predictedBalance <= 0 && !shortageDateStr) {
             shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
           }
@@ -1012,7 +1008,6 @@
         current.setDate(current.getDate() + 1);
       }
       
-      // 枯渇日のメッセージ表示処理
       const shortageMsgContainer = document.getElementById('shortage-message-container');
       if (shortageDateStr) {
         shortageMsgContainer.innerHTML = `
@@ -1025,15 +1020,12 @@
         shortageMsgContainer.innerHTML = '';
       }
 
-      // グラフのY軸を綺麗に揃えるための計算
       const allBalances = [...actualLineData, ...predictedLineData].filter(v => v !== null);
       const minBalance = Math.min(...allBalances);
       
-      // 残高の最大・最小
       let yMax = totalBudget > 0 ? totalBudget * 1.1 : 10000;
       let yMin = minBalance >= 0 ? 0 : minBalance * 1.1;
       
-      // 棒グラフ（支出）の最大・最小（左右の0ラインを合わせる魔法の計算）
       let y1Max = maxBarAmount === 0 ? 1000 : maxBarAmount * 2.5;
       let y1Min = yMin < 0 ? y1Max * (yMin / yMax) : 0;
       
@@ -1048,7 +1040,7 @@
               data: actualLineData,
               borderColor: '#10B981',
               borderWidth: 3,
-              pointStyle: 'line', // 修正①
+              pointStyle: 'line',
               tension: 0.1,
               pointRadius: 0,
               pointHitRadius: 10,
@@ -1061,7 +1053,7 @@
               borderColor: '#EF4444',
               borderWidth: 3,
               borderDash: [5, 5],
-              pointStyle: 'line', // 修正①
+              pointStyle: 'line',
               tension: 0.1,
               pointRadius: 0,
               pointHitRadius: 10,
@@ -1073,7 +1065,7 @@
               data: barData,
               backgroundColor: 'rgba(79, 70, 229, 0.4)',
               borderRadius: 4,
-              pointStyle: 'rectRounded', // 修正①
+              pointStyle: 'rectRounded',
               yAxisID: 'y1'
             }
           ]
@@ -1082,12 +1074,25 @@
           responsive: true,
           maintainAspectRatio: false,
           interaction: { mode: 'index', intersect: false },
+          /* 新規追加：左から右へ順番に描画するアニメーション設定 */
+          animation: {
+            duration: 400, // 棒が伸びる、線が引かれるアニメーションの速さ
+            easing: 'easeOutQuart',
+            delay: (context) => {
+              let delay = 0;
+              if (context.type === 'data') {
+                // 左からの順番（dataIndex）に応じて、描画開始を遅らせる
+                delay = context.dataIndex * 40; 
+              }
+              return delay;
+            }
+          },
           plugins: {
             legend: {
               display: true,
               position: 'top',
               labels: { 
-                usePointStyle: true, // 修正①：四角ではなく指定した形状（線など）を使う
+                usePointStyle: true,
                 font: { size: 10, family: 'sans-serif' }, 
                 boxWidth: 16, 
                 padding: 12 
@@ -1113,11 +1118,10 @@
             },
             y: {
               type: 'linear', display: true, position: 'left',
-              min: yMin, max: yMax, // 修正②：最小値を動的に設定して無駄な余白を削る
+              min: yMin, max: yMax,
               title: { display: true, text: '残高', font: { size: 9 } },
               ticks: { font: { size: 9 }, callback: function(value){ return '¥' + value.toLocaleString(); } },
               grid: {
-                // 修正②：0円ラインを赤い太線にして強調する
                 color: function(context) {
                   if (context.tick && context.tick.value === 0) return 'rgba(239, 68, 68, 0.5)';
                   return '#E5E7EB';
@@ -1130,7 +1134,7 @@
             },
             y1: {
               type: 'linear', display: false, position: 'right', 
-              min: y1Min, max: y1Max // 修正②：左右の0円ラインの高さを揃える
+              min: y1Min, max: y1Max
             }
           }
         }
