@@ -271,7 +271,8 @@
         <div class="card prediction-card">
           <div class="card-title" style="color: var(--primary);">
             <div style="display:flex; align-items:center;">
-              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+              <!-- 修正点：誤解を招く(+)アイコンを「お財布(ウォレット)」アイコンに変更 -->
+              <svg class="icon" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2-2z"></path></svg>
               全体の残高と予想
             </div>
             <span id="cycle-range-badge" style="background:#E0E7FF; font-size:0.7rem; font-weight:700; padding: 4px 8px; border-radius: 6px;"></span>
@@ -321,12 +322,10 @@
           <div style="text-align: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
           
           <div class="chart-toggle-container">
-            <!-- 変更点：推移をデフォルトにし、左側に配置 -->
             <button type="button" id="btn-chart-trend" class="chart-toggle-btn active" onclick="switchChartView('trend')">📈 推移 (予測)</button>
             <button type="button" id="btn-chart-pie" class="chart-toggle-btn" onclick="switchChartView('pie')">📊 内訳 (円)</button>
           </div>
           
-          <!-- 変更点：推移をデフォルトのactiveクラスに設定 -->
           <div id="chart-view-trend" class="chart-view active">
             <div id="shortage-message-container"></div>
             <div class="trend-chart-wrapper">
@@ -843,32 +842,54 @@
       renderPrediction(); renderCategorySelects(); renderHomeHistory(); renderHistoryTab(); renderSettingsCategoryList();
     }
     
+    // 修正点：ホームの予測文章とグラフの着地点の計算式を完全に統一
     function renderPrediction() {
-      const msgEl = document.getElementById('prediction-message'), start = new Date(appData.settings.startDate), end = new Date(appData.settings.endDate), now = new Date();
+      const msgEl = document.getElementById('prediction-message');
+      const start = new Date(appData.settings.startDate);
+      const end = new Date(appData.settings.endDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
       const totalBudget = appData.settings.totalBudget || 0;
-      let cycleSpent = 0;
+      let totalCycleSpent = 0;
+      let pastCycleSpent = 0;
       
-      appData.expenses.forEach(e => { const d = new Date(e.date); if (d >= start && d <= end) cycleSpent += e.amount; });
+      // グラフ側と同じく、今日までの支出を集計
+      appData.expenses.forEach(e => {
+        const d = new Date(e.date);
+        if (d >= start && d <= end) {
+          totalCycleSpent += e.amount;
+          if (d <= today) pastCycleSpent += e.amount;
+        }
+      });
       
-      const totalRemaining = totalBudget - cycleSpent;
+      const totalRemaining = totalBudget - totalCycleSpent;
       document.getElementById('total-budget-display').innerText = '¥' + totalBudget.toLocaleString();
       const totalRemEl = document.getElementById('total-remaining');
       totalRemEl.innerText = totalRemaining < 0 ? '-¥' + Math.abs(totalRemaining).toLocaleString() : '¥' + totalRemaining.toLocaleString();
       totalRemEl.style.color = totalRemaining < 0 ? 'var(--danger)' : 'var(--text)';
 
+      const now = new Date();
       if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; return; }
       
-      const totalDays = getPeriodDays(), elapsedDays = Math.max(1, Math.round((Math.min(now, end) - start) / 86400000) + 1), remainingDays = totalDays - elapsedDays;
+      // グラフ側と全く同じ計算基準を適用
+      const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1);
+      const remainingDays = Math.max(0, Math.round((end - today) / 86400000));
       
       if (elapsedDays < 7) {
         msgEl.innerHTML = `期間スタート！<br><span style="color: var(--text-muted); font-size: 0.85rem;">💡 開始7日目から残高予想が表示されます。</span>`;
         return;
       }
-      const avgDaily = Math.round(cycleSpent / elapsedDays), projectedTotal = cycleSpent + (avgDaily * remainingDays), diff = totalBudget - projectedTotal;
+      
+      // 平均ペースと最終残高の算出（グラフの最終プロットと完全一致）
+      const avgDaily = pastCycleSpent / elapsedDays;
+      const currentBalance = totalBudget - pastCycleSpent; 
+      const diff = currentBalance - (avgDaily * remainingDays);
+
       if (diff >= 0) { 
-        msgEl.innerHTML = `いい調子！最近の支出ペースなら最終日には約 <strong style="color:var(--success);">¥${diff.toLocaleString()}</strong> 残る予定です！`; 
+        msgEl.innerHTML = `いい調子！最近の支出ペースなら最終日には約 <strong style="color:var(--success);">¥${Math.round(diff).toLocaleString()}</strong> 残る予定です！`; 
       } else { 
-        msgEl.innerHTML = `最近の支出ペースだと最終日に約 <strong style="color: var(--danger);">¥${Math.abs(diff).toLocaleString()}</strong> 赤字になってしまいます💦<br><span style="font-size: 0.85rem; color: var(--danger);">しばらく支出を抑えましょう…！</span>`; 
+        msgEl.innerHTML = `最近の支出ペースだと最終日に約 <strong style="color: var(--danger);">¥${Math.round(Math.abs(diff)).toLocaleString()}</strong> 赤字になってしまいます💦<br><span style="font-size: 0.85rem; color: var(--danger);">しばらく支出を抑えましょう…！</span>`; 
       }
     }
     
