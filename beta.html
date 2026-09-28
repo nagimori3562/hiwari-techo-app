@@ -44,7 +44,6 @@
     
     .card { background: var(--card-bg); border-radius: 20px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: none; width: 100%; max-width: 100%; overflow: hidden; position: relative; }
     
-    /* 特等席化：今日使えるお金カード */
     .card-hero { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); }
     .card-hero .card-title, .card-hero .hero-amount, .card-hero .hero-sub { color: white !important; }
     .card-hero .card-title svg { stroke: white; }
@@ -74,8 +73,14 @@
     .btn { background-color: var(--primary); color: white; border: none; padding: 16px 20px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; width: 100%; display: block; text-align: center; transition: transform 0.1s, opacity 0.2s; }
     .btn:active { transform: scale(0.98); opacity: 0.9; }
     .btn-secondary { background-color: #F3F4F6; color: var(--text); border: none; padding: 10px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-    .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 12px; border-radius: 12px; font-weight: 700; width: 100%; cursor: pointer; text-align: left; margin-bottom: 12px; transition: all 0.2s; }
-    .btn-outline:active, .btn-outline.selected { background-color: var(--primary-light); }
+    
+    /* ラジオボタン型の選択UI */
+    .radio-option { display: flex; align-items: flex-start; padding: 16px; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; background: var(--card-bg); }
+    .radio-option input[type="radio"] { margin-right: 12px; margin-top: 4px; accent-color: var(--primary); transform: scale(1.3); cursor: pointer; }
+    .radio-option:hover { border-color: #C7D2FE; }
+    .radio-option.selected { border-color: var(--primary); background-color: var(--primary-light); }
+    .ob-option-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .ob-option-desc { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; line-height: 1.4; }
     
     .history-list { list-style: none; }
     .history-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background-color 0.2s; }
@@ -126,8 +131,8 @@
     
     .chart-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
     
-    /* 円グラフ（メーター化） */
-    .pie-chart { width: 220px; height: 220px; border-radius: 50%; background: #E5E7EB; margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); transition: background 0.5s ease; }
+    /* 円グラフ */
+    .pie-chart { width: 220px; height: 220px; border-radius: 50%; background: #E5E7EB; margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; }
     .pie-overbudget { background: var(--danger) !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
     .pie-overbudget .pie-center { border: 4px solid var(--danger-light); }
@@ -168,8 +173,6 @@
     .onboarding-box { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 24px; padding: 32px 24px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .ob-title { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; text-align: center; }
     .ob-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px; text-align: center; line-height: 1.5; }
-    .ob-option-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-    .ob-option-desc { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
 
     #login-screen, #loading-overlay, #success-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     #login-screen { background-color: var(--bg); padding: 20px; overflow-y: auto; }
@@ -217,22 +220,35 @@
       <div class="ob-title">パートナーを選ぼう</div>
       <div class="ob-desc">ひわり手帳へようこそ！<br>あなたをサポートするパートナーの性格を選んでください。（あとで変更可能です）</div>
       
-      <button class="btn-outline selected" onclick="selectObPersonality('positive', this)">
-        <div class="ob-option-title">🌻 ポジティブ（おすすめ）</div>
-        <div class="ob-option-desc">「いい調子ですね！週末に贅沢できるかも！」<br>褒めて伸ばす、モチベーション重視タイプ。</div>
-      </button>
-      <button class="btn-outline" onclick="selectObPersonality('calm', this)">
-        <div class="ob-option-title">👓 冷静・シンプル</div>
-        <div class="ob-option-desc">「現在のペースは適正です。最終予測は…」<br>事実を淡々と伝える、分析重視タイプ。</div>
-      </button>
-      <button class="btn-outline" onclick="selectObPersonality('hot', this)">
-        <div class="ob-option-title">🔥 熱血</div>
-        <div class="ob-option-desc">「よく我慢した！今日の君は最高に輝いてる！」<br>松岡修造ばりに励ましてくれる情熱タイプ。</div>
-      </button>
-      <button class="btn-outline" onclick="selectObPersonality('yuru', this)">
-        <div class="ob-option-title">🍵 ゆるふわ</div>
-        <div class="ob-option-desc">「今日もおつかれさまぁ〜。のんびりいこ〜」<br>癒やしを提供してくれる、マイペースタイプ。</div>
-      </button>
+      <!-- ラジオボタンUIに変更 -->
+      <label class="radio-option selected" onclick="selectObRadio(this, 'ob-personality')">
+        <input type="radio" name="ob-personality" value="positive" checked>
+        <div>
+          <div class="ob-option-title">🌻 ポジティブ</div>
+          <div class="ob-option-desc">「いい調子ですね！週末に贅沢できるかも！」<br>褒めて伸ばす、モチベーション重視タイプ。</div>
+        </div>
+      </label>
+      <label class="radio-option" onclick="selectObRadio(this, 'ob-personality')">
+        <input type="radio" name="ob-personality" value="calm">
+        <div>
+          <div class="ob-option-title">👓 冷静・シンプル</div>
+          <div class="ob-option-desc">「現在のペースは適正です。最終予測は…」<br>事実を淡々と伝える、分析重視タイプ。</div>
+        </div>
+      </label>
+      <label class="radio-option" onclick="selectObRadio(this, 'ob-personality')">
+        <input type="radio" name="ob-personality" value="hot">
+        <div>
+          <div class="ob-option-title">🔥 熱血</div>
+          <div class="ob-option-desc">「よく我慢した！今日の君は最高に輝いてる！」<br>松岡〇造ばりに励ましてくれる情熱タイプ。</div>
+        </div>
+      </label>
+      <label class="radio-option" onclick="selectObRadio(this, 'ob-personality')">
+        <input type="radio" name="ob-personality" value="yuru">
+        <div>
+          <div class="ob-option-title">🍵 ゆるふわ</div>
+          <div class="ob-option-desc">「今日もおつかれさまぁ〜。のんびりいこ〜」<br>癒やしを提供してくれる、マイペースタイプ。</div>
+        </div>
+      </label>
       
       <button type="button" class="btn" style="margin-top: 24px;" onclick="nextObStep()">次へ</button>
     </div>
@@ -242,22 +258,26 @@
       <div class="ob-title">グラフのタイプを選ぼう</div>
       <div class="ob-desc">あなたの安心できる見せ方を選んでください。<br>分析タブの推移グラフに反映されます。</div>
       
-      <button class="btn-outline selected" onclick="selectObChart('trend', this)">
-        <div class="ob-option-title">📉 残高推移（右肩下がり）</div>
-        <div class="ob-option-desc">予算から徐々に減っていく形。<br>残りいくらあるか、ゴールをしっかり把握したい人向け。</div>
-      </button>
-      <button class="btn-outline" onclick="selectObChart('cumulative', this)">
-        <div class="ob-option-title">📈 累積支出（右肩上がり）</div>
-        <div class="ob-option-desc">お金が減るグラフを見ると焦ってしまう人向け。<br>予算の天井まであとどれくらい余裕があるか確認できます。</div>
-      </button>
+      <label class="radio-option selected" onclick="selectObRadio(this, 'ob-chart')">
+        <input type="radio" name="ob-chart" value="trend" checked>
+        <div>
+          <div class="ob-option-title">📉 残高推移（右肩下がり）</div>
+          <div class="ob-option-desc">予算から徐々に減っていく形。<br>残りいくらあるか、ゴールをしっかり把握したい人向け。</div>
+        </div>
+      </label>
+      <label class="radio-option" onclick="selectObRadio(this, 'ob-chart')">
+        <input type="radio" name="ob-chart" value="cumulative">
+        <div>
+          <div class="ob-option-title">📈 累積支出（右肩上がり）</div>
+          <div class="ob-option-desc">お金が減るグラフを見ると焦ってしまう人向け。<br>予算の天井まであとどれくらい余裕があるか確認できます。</div>
+        </div>
+      </label>
       
       <button type="button" class="btn" style="margin-top: 24px;" onclick="finishOnboarding()">設定して始める！</button>
     </div>
   </div>
 
-  <!-- 登録完了モーダル等（省略せず残す） -->
   <div id="success-modal">
-    <!-- ... 中略（元のsuccess-modal）... -->
     <div class="success-box">
       <div style="width: 60px; height: 60px; background: var(--success-light); color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
         <svg class="icon" style="width: 30px; height: 30px;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -273,9 +293,8 @@
     </div>
   </div>
 
-  <!-- ログイン画面（元のまま） -->
+  <!-- ログイン画面 -->
   <div id="login-screen">
-    <!-- 中身は元のままなので省略せず残します -->
     <div class="auth-box">
       <div class="auth-title">ひわり手帳</div>
       <div class="auth-subtitle" id="auth-subtitle">ログインして予算管理を始めましょう</div>
@@ -295,16 +314,12 @@
           </div>
         </div>
         <div class="auth-options">
-          <label class="checkbox-label">
-            <input type="checkbox" id="remember-me" checked> 次回から自動でログイン
-          </label>
+          <label class="checkbox-label"><input type="checkbox" id="remember-me" checked> 次回から自動でログイン</label>
         </div>
         <button type="submit" class="btn">ログイン</button>
-        
         <div class="divider">または</div>
         <button type="button" class="btn btn-google" onclick="loginWithGoogle()">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18">
-          Googleでログイン
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18"> Googleでログイン
         </button>
         <div class="auth-switch">アカウントをお持ちでない方は <a onclick="switchAuthView('register')">新規登録</a></div>
       </form>
@@ -349,8 +364,6 @@
     
     <main>
       <div id="tab-home" class="tab-content active">
-        
-        <!-- 大改修 1: 今日使えるお金を一番上に、特等席化 -->
         <div class="card card-hero">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
@@ -362,7 +375,6 @@
           <div class="hero-sub" id="today-detail" style="font-weight: 600;">1日あたりの目安: ¥0 | 前日繰越: ¥0</div>
         </div>
 
-        <!-- 大改修 2: 全体の残高と予測メッセージ -->
         <div class="card prediction-card" id="prediction-card-wrap">
           <div class="card-title" style="color: var(--primary);">
             <div style="display:flex; align-items:center;">
@@ -404,13 +416,21 @@
           </div>
           <div style="text-align: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
           
+          <!-- 順序を推移グラフ → 予算メーターに変更 -->
           <div class="chart-toggle-container">
-            <button type="button" id="btn-chart-pie" class="chart-toggle-btn active" onclick="switchChartView('pie')">📊 予算メーター</button>
-            <button type="button" id="btn-chart-trend" class="chart-toggle-btn" onclick="switchChartView('trend')">📈 推移グラフ</button>
+            <button type="button" id="btn-chart-trend" class="chart-toggle-btn active" onclick="switchChartView('trend')">📈 推移グラフ</button>
+            <button type="button" id="btn-chart-pie" class="chart-toggle-btn" onclick="switchChartView('pie')">📊 予算メーター</button>
           </div>
           
-          <!-- 大改修 3: 円グラフ（予算消化メーター） -->
-          <div id="chart-view-pie" class="chart-view active">
+          <!-- 初期表示を推移グラフに設定 -->
+          <div id="chart-view-trend" class="chart-view active">
+            <div id="shortage-message-container"></div>
+            <div class="trend-chart-wrapper">
+              <canvas id="trend-chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <div id="chart-view-pie" class="chart-view">
             <div class="chart-container">
               <div class="pie-chart" id="pie-chart">
                 <div class="pie-center">
@@ -421,13 +441,6 @@
                 </div>
               </div>
               <div class="legend-grid" id="chart-legend"></div>
-            </div>
-          </div>
-
-          <div id="chart-view-trend" class="chart-view">
-            <div id="shortage-message-container"></div>
-            <div class="trend-chart-wrapper">
-              <canvas id="trend-chart-canvas"></canvas>
             </div>
           </div>
         </div>
@@ -448,14 +461,13 @@
       </div>
       
       <div id="tab-settings" class="tab-content">
-        <!-- 大改修 4: 性格＆グラフ設定 -->
         <div class="card" style="background: var(--primary-light);">
           <div class="card-title" style="color: var(--primary);">パートナー＆表示設定</div>
           
           <div class="input-group">
             <label style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: block; margin-bottom: 6px;">パートナーの性格</label>
-            <select id="setting-personality" onchange="updateSettingsLive()">
-              <option value="positive">🌻 ポジティブ（おすすめ）</option>
+            <select id="setting-personality" onchange="updateSettingsLive()" style="background:#fff; border-color:var(--primary); color:var(--primary);">
+              <option value="positive">🌻 ポジティブ</option>
               <option value="calm">👓 冷静・シンプル</option>
               <option value="hot">🔥 熱血</option>
               <option value="yuru">🍵 ゆるふわ</option>
@@ -464,7 +476,7 @@
 
           <div class="input-group">
             <label style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: block; margin-bottom: 6px;">推移グラフのタイプ</label>
-            <select id="setting-chart-type" onchange="updateSettingsLive()">
+            <select id="setting-chart-type" onchange="updateSettingsLive()" style="background:#fff; border-color:var(--primary); color:var(--primary);">
               <option value="trend">📉 残高推移（右肩下がり）</option>
               <option value="cumulative">📈 累積支出（右肩上がり）</option>
             </select>
@@ -527,7 +539,6 @@
     </nav>
   </div>
 
-  <!-- 大改修 5: カレンダー詳細ボトムシート -->
   <div id="daily-detail-overlay" class="bottom-sheet-overlay" onclick="closeDailyDetail(event)">
     <div class="bottom-sheet" id="daily-detail-sheet" onclick="event.stopPropagation()">
       <div class="sheet-drag-area" id="daily-sheet-drag-area"><div class="sheet-handle"></div></div>
@@ -541,10 +552,14 @@
       <div style="border-top: 2px dashed var(--border); padding-top: 16px;">
         <ul id="daily-detail-list" class="history-list"></ul>
       </div>
+
+      <!-- カレンダーから直接支出を追加できるボタンを追加 -->
+      <button type="button" class="btn" style="margin-top: 20px;" onclick="openInputFromDaily()">
+        ＋ この日に支出を追加
+      </button>
     </div>
   </div>
 
-  <!-- 入力用ボトムシート（元のまま） -->
   <div id="input-modal-overlay" class="bottom-sheet-overlay" onclick="closeInputModal(event)">
     <div class="bottom-sheet" id="input-bottom-sheet" onclick="event.stopPropagation()">
       <div class="sheet-drag-area" id="sheet-drag-area"><div class="sheet-handle"></div></div>
@@ -570,7 +585,6 @@
     </div>
   </div>
 
-  <!-- 履歴アクション用ボトムシート -->
   <div id="history-action-overlay" class="bottom-sheet-overlay" onclick="closeHistoryAction(event)">
     <div class="bottom-sheet" style="padding: 16px 24px 32px 24px;" onclick="event.stopPropagation()">
       <div class="sheet-handle" style="margin-bottom: 20px;"></div>
@@ -623,18 +637,20 @@
   </script>
 
   <script>
-    // データ初期構造（性格とグラフ設定を追加）
-    let appData = { 
-      settings: { totalBudget: 15000, startDate: '', endDate: '', personality: '', chartType: '' }, 
-      categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], 
-      expenses: [] 
-    };
+    let appData = { settings: { totalBudget: 15000, startDate: '', endDate: '', personality: '', chartType: '' }, categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], expenses: [] };
     const chartColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#64748B'];
     let currentCalDate = new Date(), currentCalcStr = "", editingId = null, actionTargetId = null;
-    let startY = 0, currentY = 0, dailyStartY = 0, dailyCurrentY = 0;
+    let startY = 0, currentY = 0;
     let tempObPersonality = 'positive', tempObChart = 'trend';
+    let currentDailyDate = null;
     window.trendChart = null;
     
+    // プログレッシブアニメーション設定（推移グラフ用）
+    const progressiveLineAnimation = {
+      x: { type: 'number', easing: 'linear', duration: 40, from: NaN, delay(ctx) { if (ctx.type !== 'data' || ctx.xStarted) return 0; ctx.xStarted = true; return ctx.index * 40; } },
+      y: { type: 'number', easing: 'linear', duration: 40, from(ctx) { if (ctx.dataset.data[ctx.index] === null) return 0; let prevIndex = ctx.index - 1; while (prevIndex >= 0 && ctx.dataset.data[prevIndex] === null) prevIndex--; if (prevIndex >= 0) { const meta = ctx.chart.getDatasetMeta(ctx.datasetIndex); const point = meta.data[prevIndex]; if (point) return point.getProps(['y'], true).y; } return ctx.chart.scales.y.getPixelForValue(ctx.dataset.data[ctx.index]); }, delay(ctx) { if (ctx.type !== 'data' || ctx.yStarted) return 0; ctx.yStarted = true; return ctx.index * 40; } }
+    };
+
     function parseLocalDate(dateStr) { if (!dateStr) return new Date(); const parts = dateStr.split('-'); return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)); }
     function formatDateForStorage(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
     function formatDateForDisplay(dateStr) { if (!dateStr) return ''; const d = parseLocalDate(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; }
@@ -669,45 +685,34 @@
         }
       } catch (error) {}
       
-      // オンボーディング判定
       if (!appData.settings.personality || !appData.settings.chartType) {
         document.getElementById('onboarding-overlay').style.display = 'flex';
       } else {
-        syncSettingsToUI();
-        renderAll();
+        syncSettingsToUI(); renderAll();
       }
     };
     
     window.saveDataToCloud = async function() { if (!window.auth || !window.auth.currentUser) return; try { await window.setDoc(window.doc(window.db, "users", window.auth.currentUser.uid), appData); } catch (e) {} };
 
     // --- オンボーディング関連 ---
-    window.selectObPersonality = function(val, btn) {
-      tempObPersonality = val;
-      btn.parentElement.querySelectorAll('.btn-outline').forEach(el => el.classList.remove('selected'));
-      btn.classList.add('selected');
+    window.selectObRadio = function(element, groupName) {
+      element.parentElement.querySelectorAll('.radio-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      const radio = element.querySelector(`input[name="${groupName}"]`);
+      radio.checked = true;
+      if (groupName === 'ob-personality') tempObPersonality = radio.value;
+      if (groupName === 'ob-chart') tempObChart = radio.value;
     };
-    window.nextObStep = function() {
-      document.getElementById('ob-step-1').style.display = 'none';
-      document.getElementById('ob-step-2').style.display = 'block';
-    };
-    window.selectObChart = function(val, btn) {
-      tempObChart = val;
-      btn.parentElement.querySelectorAll('.btn-outline').forEach(el => el.classList.remove('selected'));
-      btn.classList.add('selected');
-    };
+    window.nextObStep = function() { document.getElementById('ob-step-1').style.display = 'none'; document.getElementById('ob-step-2').style.display = 'block'; };
     window.finishOnboarding = function() {
-      appData.settings.personality = tempObPersonality;
-      appData.settings.chartType = tempObChart;
+      appData.settings.personality = tempObPersonality; appData.settings.chartType = tempObChart;
       document.getElementById('onboarding-overlay').style.display = 'none';
-      window.saveDataToCloud();
-      syncSettingsToUI();
-      renderAll();
+      window.saveDataToCloud(); syncSettingsToUI(); renderAll();
     };
 
     function syncSettingsToUI() {
       document.getElementById('setting-total-budget').value = appData.settings.totalBudget;
-      document.getElementById('setting-start-date').value = appData.settings.startDate;
-      document.getElementById('setting-end-date').value = appData.settings.endDate;
+      document.getElementById('setting-start-date').value = appData.settings.startDate; document.getElementById('setting-end-date').value = appData.settings.endDate;
       if(document.getElementById('setting-start-date')._flatpickr) document.getElementById('setting-start-date')._flatpickr.setDate(appData.settings.startDate);
       if(document.getElementById('setting-end-date')._flatpickr) document.getElementById('setting-end-date')._flatpickr.setDate(appData.settings.endDate);
       document.getElementById('setting-personality').value = appData.settings.personality || 'positive';
@@ -715,44 +720,32 @@
       updateBudgetPreview();
     }
 
-    function getPeriodDays() {
-      if (!appData.settings.startDate || !appData.settings.endDate) return 1;
-      const days = Math.round((parseLocalDate(appData.settings.endDate) - parseLocalDate(appData.settings.startDate)) / 86400000) + 1;
-      return days > 0 ? days : 1;
-    }
+    function getPeriodDays() { if (!appData.settings.startDate || !appData.settings.endDate) return 1; const days = Math.round((parseLocalDate(appData.settings.endDate) - parseLocalDate(appData.settings.startDate)) / 86400000) + 1; return days > 0 ? days : 1; }
     function getDailyBudget() { return Math.floor((appData.settings.totalBudget || 0) / getPeriodDays()); }
-    
     function updateBudgetPreview() {
       const start = parseLocalDate(document.getElementById('setting-start-date').value), end = parseLocalDate(document.getElementById('setting-end-date').value), total = parseInt(document.getElementById('setting-total-budget').value) || 0;
-      if (start <= end) {
-        const days = Math.round((end - start) / 86400000) + 1;
-        document.getElementById('budget-preview').innerHTML = `期間: ${days}日間<br>1日あたりの使える目安: <strong>¥${Math.floor(total / days).toLocaleString()}</strong>`;
-      } else { document.getElementById('budget-preview').innerHTML = '<span style="color:var(--danger)">日付が正しくありません</span>'; }
+      if (start <= end) { const days = Math.round((end - start) / 86400000) + 1; document.getElementById('budget-preview').innerHTML = `期間: ${days}日間<br>1日あたりの使える目安: <strong>¥${Math.floor(total / days).toLocaleString()}</strong>`; } 
+      else { document.getElementById('budget-preview').innerHTML = '<span style="color:var(--danger)">日付が正しくありません</span>'; }
     }
     
-    window.updateSettingsLive = function() {
-      appData.settings.personality = document.getElementById('setting-personality').value;
-      appData.settings.chartType = document.getElementById('setting-chart-type').value;
-      window.saveDataToCloud(); renderAll();
-    };
+    window.updateSettingsLive = function() { appData.settings.personality = document.getElementById('setting-personality').value; appData.settings.chartType = document.getElementById('setting-chart-type').value; window.saveDataToCloud(); renderAll(); };
 
-    // --- 各種モーダル開閉 ---
     window.openInputModal = function() {
-      const bs = document.getElementById('input-bottom-sheet'); bs.style.transform = '';
-      document.getElementById('input-modal-overlay').style.display = 'flex'; document.body.style.overflow = 'hidden';
+      const bs = document.getElementById('input-bottom-sheet'); bs.style.transform = ''; document.getElementById('input-modal-overlay').style.display = 'flex'; document.body.style.overflow = 'hidden';
       if (!editingId) {
         calcClear(); document.getElementById('input-note').value = '';
-        const di = document.getElementById('input-date'); di.value = getTodayStr(); if(di._flatpickr) di._flatpickr.setDate(getTodayStr());
+        const di = document.getElementById('input-date'); 
+        if(!currentDailyDate) { di.value = getTodayStr(); if(di._flatpickr) di._flatpickr.setDate(getTodayStr()); }
         document.getElementById('input-modal-title').innerText = '支出を記録'; document.getElementById('add-btn').innerText = '記録する';
       }
     };
-    window.closeInputModal = function(e) { if(e === true || (e && e.target === document.getElementById('input-modal-overlay'))) { document.getElementById('input-modal-overlay').style.display = 'none'; document.body.style.overflow = 'auto'; editingId = null; } };
+    window.closeInputModal = function(e) { if(e === true || (e && e.target === document.getElementById('input-modal-overlay'))) { document.getElementById('input-modal-overlay').style.display = 'none'; document.body.style.overflow = 'auto'; editingId = null; currentDailyDate = null; } };
+    
     window.promptHistoryAction = function(id) { actionTargetId = id; document.getElementById('history-action-overlay').style.display = 'flex'; document.body.style.overflow = 'hidden'; closeDailyDetail(true); };
     window.closeHistoryAction = function(e) { if(e && e.target !== document.getElementById('history-action-overlay')) return; document.getElementById('history-action-overlay').style.display = 'none'; document.body.style.overflow = 'auto'; actionTargetId = null; };
     window.openEditFromAction = function() { const id = actionTargetId; closeHistoryAction(); if(!id) return; const item = appData.expenses.find(e => e.id === Number(id)); if (!item) return; editingId = item.id; currentCalcStr = String(item.amount); updateCalcDisplay(); const di = document.getElementById('input-date'); di.value = item.date; if(di._flatpickr) di._flatpickr.setDate(item.date); document.getElementById('input-category').value = item.category; document.getElementById('input-note').value = item.note || ''; document.getElementById('input-modal-title').innerText = '記録を編集'; document.getElementById('add-btn').innerText = '上書き保存する'; openInputModal(); };
     window.deleteFromAction = function() { const id = actionTargetId; if(!id) return; if(confirm('この記録を削除しますか？')) { appData.expenses = appData.expenses.filter(item => item.id !== Number(id)); window.saveDataToCloud(); renderAll(); } closeHistoryAction(); };
 
-    // --- 計算機ロジック ---
     function calcInput(val) { const ops = ['+', '-', '*', '/']; if (ops.includes(val)) { if (currentCalcStr === "") return; if (ops.includes(currentCalcStr.slice(-1))) currentCalcStr = currentCalcStr.slice(0, -1); } currentCalcStr += val; updateCalcDisplay(); }
     function calcBackspace() { if (currentCalcStr.length > 0) { currentCalcStr = currentCalcStr.slice(0, -1); updateCalcDisplay(); } }
     function calcClear() { currentCalcStr = ""; updateCalcDisplay(); }
@@ -776,37 +769,26 @@
       const dailyMap = {}; appData.expenses.forEach(e => { if (!dailyMap[e.date]) dailyMap[e.date] = 0; dailyMap[e.date] += e.amount; });
       const result = {}; let carryOver = 0; const dailyBudget = getDailyBudget(), startDate = parseLocalDate(appData.settings.startDate), endDate = parseLocalDate(appData.settings.endDate);
       const today = new Date(); today.setHours(0, 0, 0, 0); const calcEnd = new Date(Math.min(today, endDate)), current = parseLocalDate(appData.settings.startDate);
-      while (current <= calcEnd) {
-        const dateStr = formatDateForStorage(current), spent = dailyMap[dateStr] || 0, available = dailyBudget + carryOver, remaining = available - spent;
-        result[dateStr] = { budget: dailyBudget, carryOver, spent, remaining }; carryOver = remaining; current.setDate(current.getDate() + 1);
-      }
+      while (current <= calcEnd) { const dateStr = formatDateForStorage(current), spent = dailyMap[dateStr] || 0, available = dailyBudget + carryOver, remaining = available - spent; result[dateStr] = { budget: dailyBudget, carryOver, spent, remaining }; carryOver = remaining; current.setDate(current.getDate() + 1); }
       return result;
     }
     
     function renderAll() {
       const startDate = appData.settings.startDate, endDate = appData.settings.endDate, dailyBudget = getDailyBudget();
       document.getElementById('cycle-range-badge').innerText = `${formatDateForDisplay(startDate)}〜${formatDateForDisplay(endDate)}`;
-      const balances = calculateDailyBalances(), todayStr = getTodayStr();
-      let todayData = balances[todayStr];
+      const balances = calculateDailyBalances(), todayStr = getTodayStr(); let todayData = balances[todayStr];
       if (!todayData) {
         const start = parseLocalDate(startDate), now = new Date(); now.setHours(0, 0, 0, 0);
         if (now < start) { todayData = { budget: dailyBudget, carryOver: 0, spent: 0, remaining: dailyBudget }; }
-        else {
-          const dateKeys = Object.keys(balances).sort();
-          if (dateKeys.length > 0) { const lastData = balances[dateKeys[dateKeys.length - 1]]; todayData = { budget: dailyBudget, carryOver: lastData.remaining, spent: 0, remaining: dailyBudget + lastData.remaining }; }
-          else { todayData = { budget: dailyBudget, carryOver: 0, spent: 0, remaining: dailyBudget }; }
-        }
+        else { const dateKeys = Object.keys(balances).sort(); if (dateKeys.length > 0) { const lastData = balances[dateKeys[dateKeys.length - 1]]; todayData = { budget: dailyBudget, carryOver: lastData.remaining, spent: 0, remaining: dailyBudget + lastData.remaining }; } else { todayData = { budget: dailyBudget, carryOver: 0, spent: 0, remaining: dailyBudget }; } }
       }
       
-      const remEl = document.getElementById('today-remaining');
-      remEl.innerText = `¥${todayData.remaining.toLocaleString()}`;
-      // 赤字の時はカード全体の雰囲気を変えるなどの拡張も可能
+      const remEl = document.getElementById('today-remaining'); remEl.innerText = `¥${todayData.remaining.toLocaleString()}`;
       document.getElementById('today-detail').innerText = `1日あたりの目安: ¥${todayData.budget.toLocaleString()} | 前日繰越: ¥${todayData.carryOver.toLocaleString()}`;
       
       renderPrediction(); renderCategorySelects(); renderHomeHistory(); renderHistoryTab(); renderSettingsCategoryList();
     }
     
-    // パートナーの性格に応じたメッセージ生成
     function getPersonalityMessage(diff, remainingDays, personality) {
       const diffFmt = Math.abs(Math.round(diff)).toLocaleString();
       if (diff >= 0) {
@@ -831,10 +813,8 @@
     function renderPrediction() {
       const msgEl = document.getElementById('prediction-message'), cardWrap = document.getElementById('prediction-card-wrap');
       const start = parseLocalDate(appData.settings.startDate), end = parseLocalDate(appData.settings.endDate);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const totalBudget = appData.settings.totalBudget || 0;
+      const today = new Date(); today.setHours(0, 0, 0, 0); const totalBudget = appData.settings.totalBudget || 0;
       let totalCycleSpent = 0, pastCycleSpent = 0;
-      
       appData.expenses.forEach(e => { const d = parseLocalDate(e.date); if (d >= start && d <= end) { totalCycleSpent += e.amount; if (d <= today) pastCycleSpent += e.amount; } });
       
       const totalRemaining = totalBudget - totalCycleSpent;
@@ -843,29 +823,17 @@
       totalRemEl.innerText = totalRemaining < 0 ? '-¥' + Math.abs(totalRemaining).toLocaleString() : '¥' + totalRemaining.toLocaleString();
       totalRemEl.style.color = totalRemaining < 0 ? 'var(--danger)' : 'var(--text)';
 
-      const now = new Date();
-      if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; cardWrap.classList.remove('warning'); return; }
+      const now = new Date(); if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; cardWrap.classList.remove('warning'); return; }
+      const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1), remainingDays = Math.max(0, Math.round((end - today) / 86400000));
       
-      const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1);
-      const remainingDays = Math.max(0, Math.round((end - today) / 86400000));
+      if (elapsedDays < 7) { msgEl.innerHTML = `期間スタート！<br><span style="color: var(--text-muted); font-size: 0.85rem;">💡 開始7日目からパートナーの残高予想が表示されます。</span>`; cardWrap.classList.remove('warning'); return; }
       
-      if (elapsedDays < 7) {
-        msgEl.innerHTML = `期間スタート！<br><span style="color: var(--text-muted); font-size: 0.85rem;">💡 開始7日目からパートナーの残高予想が表示されます。</span>`;
-        cardWrap.classList.remove('warning'); return;
-      }
-      
-      const avgDaily = pastCycleSpent / elapsedDays;
-      const currentBalance = totalBudget - pastCycleSpent; 
-      const diff = currentBalance - (avgDaily * remainingDays);
-
+      const avgDaily = pastCycleSpent / elapsedDays, currentBalance = totalBudget - pastCycleSpent, diff = currentBalance - (avgDaily * remainingDays);
       msgEl.innerHTML = getPersonalityMessage(diff, remainingDays, appData.settings.personality);
       if (diff < 0) { cardWrap.classList.add('warning'); } else { cardWrap.classList.remove('warning'); }
     }
     
-    function renderCategorySelects() {
-      const selectEl = document.getElementById('input-category'); selectEl.innerHTML = '';
-      appData.categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; selectEl.appendChild(opt); });
-    }
+    function renderCategorySelects() { const selectEl = document.getElementById('input-category'); selectEl.innerHTML = ''; appData.categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; selectEl.appendChild(opt); }); }
     
     function renderHomeHistory() {
       const listEl = document.getElementById('home-history-list'); listEl.innerHTML = '';
@@ -875,49 +843,46 @@
     }
     
     function createHistoryElement(item) {
-      const li = document.createElement('li'); li.className = 'history-item';
-      li.onclick = () => promptHistoryAction(item.id);
-      li.innerHTML = `
-        <div class="history-info">
-          <div class="history-cat-badge">${item.category}</div>
-          <div class="history-text">
-            <div class="history-note">${item.note || 'メモなし'}</div>
-            <div class="history-date">${item.date}</div>
-          </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="history-amount">¥${item.amount.toLocaleString()}</div>
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); opacity: 0.7;"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-        </div>
-      `;
+      const li = document.createElement('li'); li.className = 'history-item'; li.onclick = () => promptHistoryAction(item.id);
+      li.innerHTML = `<div class="history-info"><div class="history-cat-badge">${item.category}</div><div class="history-text"><div class="history-note">${item.note || 'メモなし'}</div><div class="history-date">${item.date}</div></div></div><div style="display: flex; align-items: center; gap: 8px;"><div class="history-amount">¥${item.amount.toLocaleString()}</div><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); opacity: 0.7;"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>`;
       return li;
     }
     
     function renderHistoryTab() {
       const startStr = appData.settings.startDate, endStr = appData.settings.endDate;
       document.getElementById('history-cycle-dates').innerText = `${formatDateForDisplay(startStr)} 〜 ${formatDateForDisplay(endStr)}`;
-      renderPieChart(startStr, endStr); renderTrendChart(startStr, endStr); renderCalendar(); renderFullHistory(startStr, endStr);
+      renderCalendar(); renderFullHistory(startStr, endStr);
+      
+      // 現在アクティブなグラフを再描画（アニメーションを効かせるため）
+      if (document.getElementById('chart-view-pie').classList.contains('active')) {
+        renderPieChart(startStr, endStr);
+      } else {
+        renderTrendChart(startStr, endStr);
+      }
     }
     
+    // タブ切り替え時に必ずアニメーションつきで再描画する
     window.switchChartView = function(type) {
       document.querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.chart-view').forEach(view => view.classList.remove('active'));
       document.getElementById(`btn-chart-${type}`).classList.add('active');
       document.getElementById(`chart-view-${type}`).classList.add('active');
+      
+      const startStr = appData.settings.startDate, endStr = appData.settings.endDate;
+      if (type === 'pie') renderPieChart(startStr, endStr);
+      else renderTrendChart(startStr, endStr);
     };
     
-    // 大改修 3: 予算ベースの円グラフ（メーター）
+    // JSアニメーションで右回りに描画する円グラフ
     function renderPieChart(startStr, endStr) {
       const start = parseLocalDate(startStr), end = parseLocalDate(endStr), catTotals = {}; let totalSpent = 0;
       appData.expenses.forEach(e => { const d = parseLocalDate(e.date); if (d >= start && d <= end) { const cat = e.category || 'その他'; catTotals[cat] = (catTotals[cat] || 0) + e.amount; totalSpent += e.amount; } });
+      const totalBudget = appData.settings.totalBudget || 1;
       
-      const totalBudget = appData.settings.totalBudget || 1; // ゼロ割防止
       document.getElementById('pie-total-val').innerText = `¥${totalSpent.toLocaleString()}`;
       document.getElementById('pie-budget-val').innerText = `予算 ¥${totalBudget.toLocaleString()}`;
-      
       const pieChart = document.getElementById('pie-chart'), legend = document.getElementById('chart-legend'); legend.innerHTML = '';
       
-      // 凡例は使った分だけ表示
       Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]).forEach((cat, index) => {
         const amt = catTotals[cat], color = chartColors[index % chartColors.length];
         const div = document.createElement('div'); div.className = 'legend-item';
@@ -926,27 +891,40 @@
       });
 
       if (totalSpent === 0) { pieChart.style.background = '#E5E7EB'; pieChart.classList.remove('pie-overbudget'); return; }
+      if (totalSpent > totalBudget) { pieChart.classList.add('pie-overbudget'); pieChart.style.background = 'var(--danger)'; return; }
       
-      // 警告モード（予算オーバー）
-      if (totalSpent > totalBudget) {
-        pieChart.classList.add('pie-overbudget');
-        pieChart.style.background = 'var(--danger)';
-      } else {
-        pieChart.classList.remove('pie-overbudget');
+      pieChart.classList.remove('pie-overbudget');
+      
+      // カスタムアニメーション
+      let startTimestamp = null;
+      const duration = 700; // アニメーション時間
+      const sortedCats = Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]);
+      
+      function step(timestamp) {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 4); // easeOutQuart
+        
         let gradientParts = [], currentDegree = 0;
-        Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]).forEach((cat, index) => {
-          const pct = (catTotals[cat] / totalBudget) * 100, color = chartColors[index % chartColors.length], nextDegree = currentDegree + pct;
-          gradientParts.push(`${color} ${currentDegree}% ${nextDegree}%`); currentDegree = nextDegree;
+        sortedCats.forEach((cat, index) => {
+          const pct = (catTotals[cat] / totalBudget) * 100 * easeProgress;
+          const color = chartColors[index % chartColors.length];
+          const nextDegree = currentDegree + pct;
+          gradientParts.push(`${color} ${currentDegree}% ${nextDegree}%`);
+          currentDegree = nextDegree;
         });
         gradientParts.push(`#E5E7EB ${currentDegree}% 100%`);
         pieChart.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+        
+        if (progress < 1) window.requestAnimationFrame(step);
       }
+      window.requestAnimationFrame(step);
     }
     
-    // 大改修 4: グラフタイプの切り替え対応
+    // アニメーションつきで再描画する推移グラフ
     function renderTrendChart(startStr, endStr) {
       const canvas = document.getElementById('trend-chart-canvas');
-      if (window.trendChart) { window.trendChart.destroy(); }
+      if (window.trendChart) { window.trendChart.destroy(); window.trendChart = null; }
       
       const start = parseLocalDate(startStr), end = parseLocalDate(endStr), today = new Date(); today.setHours(0, 0, 0, 0);
       const totalBudget = appData.settings.totalBudget || 0;
@@ -967,22 +945,14 @@
         const dateStr = formatDateForStorage(current), spent = dailyMap[dateStr] || 0;
         labels.push(`${current.getMonth() + 1}/${current.getDate()}`);
         barData.push(spent); if (spent > maxBarAmount) maxBarAmount = spent;
-        limitLineData.push(totalBudget); // 天井ライン用
+        limitLineData.push(totalBudget);
         
         if (current <= today) {
-          currentBalance -= spent; currentCumulative += spent;
-          actualLineData.push(isCumulative ? currentCumulative : currentBalance);
-          
-          if (current.getTime() === today.getTime() || current.getTime() === end.getTime()) {
-            predictedLineData.push(isCumulative ? currentCumulative : currentBalance);
-            predictedBalance = currentBalance; predictedCumulative = currentCumulative;
-          } else { predictedLineData.push(null); }
-          
+          currentBalance -= spent; currentCumulative += spent; actualLineData.push(isCumulative ? currentCumulative : currentBalance);
+          if (current.getTime() === today.getTime() || current.getTime() === end.getTime()) { predictedLineData.push(isCumulative ? currentCumulative : currentBalance); predictedBalance = currentBalance; predictedCumulative = currentCumulative; } else { predictedLineData.push(null); }
           if (currentBalance <= 0 && !shortageDateStr) shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
         } else {
-          actualLineData.push(null);
-          predictedBalance -= avgDaily; predictedCumulative += avgDaily;
-          predictedLineData.push(isCumulative ? predictedCumulative : predictedBalance);
+          actualLineData.push(null); predictedBalance -= avgDaily; predictedCumulative += avgDaily; predictedLineData.push(isCumulative ? predictedCumulative : predictedBalance);
           if (predictedBalance <= 0 && !shortageDateStr) shortageDateStr = `${current.getMonth() + 1}/${current.getDate()}`;
         }
         current.setDate(current.getDate() + 1);
@@ -1001,20 +971,17 @@
       let y1Max = maxBarAmount === 0 ? 1000 : maxBarAmount * 2.5;
       
       const datasets = [
-        { type: 'line', label: isCumulative ? '累計（実績）' : '残高（実績）', data: actualLineData, borderColor: '#10B981', borderWidth: 3, pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y' },
-        { type: 'line', label: isCumulative ? '累計（予測）' : '残高（予測）', data: predictedLineData, borderColor: '#EF4444', borderWidth: 3, borderDash: [5, 5], pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y' },
+        { type: 'line', label: isCumulative ? '累計（実績）' : '残高（実績）', data: actualLineData, borderColor: '#10B981', borderWidth: 3, pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
+        { type: 'line', label: isCumulative ? '累計（予測）' : '残高（予測）', data: predictedLineData, borderColor: '#EF4444', borderWidth: 3, borderDash: [5, 5], pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
         { type: 'bar', label: '日別支出', data: barData, backgroundColor: 'rgba(79, 70, 229, 0.4)', borderRadius: 4, pointStyle: 'rectRounded', yAxisID: 'y1' }
       ];
-
-      if (isCumulative) {
-        datasets.unshift({ type: 'line', label: '予算上限', data: limitLineData, borderColor: '#9CA3AF', borderWidth: 2, borderDash: [4, 4], pointRadius: 0, pointHitRadius: 0, yAxisID: 'y' });
-      }
+      if (isCumulative) { datasets.unshift({ type: 'line', label: '予算上限', data: limitLineData, borderColor: '#9CA3AF', borderWidth: 2, borderDash: [4, 4], pointRadius: 0, pointHitRadius: 0, yAxisID: 'y' }); }
 
       window.trendChart = new Chart(canvas, {
-        type: 'bar',
-        data: { labels: labels, datasets: datasets },
+        type: 'bar', data: { labels: labels, datasets: datasets },
         options: {
           responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          animation: { duration: 400, easing: 'easeOutQuart', delay: (ctx) => { if (ctx.type === 'data' && ctx.dataset.type === 'bar') { return ctx.dataIndex * 40; } return 0; } },
           plugins: {
             legend: { display: true, position: 'top', labels: { usePointStyle: true, font: { size: 10 }, boxWidth: 16 } },
             tooltip: { callbacks: { label: function(c) { let l = c.dataset.label || ''; if(l) l+=': '; if(c.parsed.y !== null) l+='¥'+Math.round(c.parsed.y).toLocaleString(); return l; } } }
@@ -1030,7 +997,6 @@
     
     function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
     
-    // 大改修 5: カレンダーの詳細ポップアップ
     function renderCalendar() {
       const year = currentCalDate.getFullYear(), month = currentCalDate.getMonth();
       document.getElementById('calendar-month-title').innerText = `${year}年 ${month + 1}月`;
@@ -1039,8 +1005,7 @@
       const firstDay = new Date(year, month, 1).getDay(), daysInMonth = new Date(year, month + 1, 0).getDate();
       for (let i = 0; i < firstDay; i++) { const empty = document.createElement('div'); empty.className = 'cal-cell empty'; grid.appendChild(empty); }
       
-      const dailyTotals = {};
-      appData.expenses.forEach(e => { dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount; });
+      const dailyTotals = {}; appData.expenses.forEach(e => { dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.amount; });
       const todayStr = getTodayStr(), periodStart = parseLocalDate(appData.settings.startDate), periodEnd = parseLocalDate(appData.settings.endDate), dailyBudget = getDailyBudget(), today = new Date(); today.setHours(0, 0, 0, 0);
       
       for (let day = 1; day <= daysInMonth; day++) {
@@ -1055,10 +1020,8 @@
             cell.classList.add(spent <= dailyBudget ? 'budget-ok' : 'budget-over');
             cell.innerHTML = `<div style="font-weight:600;">${day}</div><div class="cal-amount">¥${spent.toLocaleString()}</div>`;
           } else { cell.innerHTML = `<div style="font-weight:600;">${day}</div><div class="cal-amount"></div>`; }
-        }
-        
-        // 詳細ポップアップのトリガー
-        if (spent > 0) {
+          
+          // 期間内であれば、0円の日もタップ可能に！
           cell.classList.add('has-data');
           cell.onclick = () => openDailyDetail(dateStr, spent);
         }
@@ -1066,53 +1029,52 @@
       }
     }
     
-    // 日別詳細ボトムシート開閉処理
     window.openDailyDetail = function(dateStr, totalAmount) {
+      currentDailyDate = dateStr;
       const bs = document.getElementById('daily-detail-sheet'); bs.style.transform = '';
       document.getElementById('daily-detail-overlay').style.display = 'flex'; document.body.style.overflow = 'hidden';
       
       const d = parseLocalDate(dateStr); const dayStr = ['日','月','火','水','木','金','土'][d.getDay()];
       document.getElementById('daily-detail-title').innerText = `${d.getMonth()+1}月${d.getDate()}日 (${dayStr}) の記録`;
-      const totalEl = document.getElementById('daily-detail-total');
-      totalEl.innerText = `¥${totalAmount.toLocaleString()}`;
+      document.getElementById('daily-detail-total').innerText = `¥${totalAmount.toLocaleString()}`;
       
-      // リスト作成
       const listEl = document.getElementById('daily-detail-list'); listEl.innerHTML = '';
       const dayExpenses = appData.expenses.filter(e => e.date === dateStr).sort((a,b) => b.id - a.id);
-      dayExpenses.forEach(item => listEl.appendChild(createHistoryElement(item)));
+      
+      if (dayExpenses.length === 0) {
+        listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.95rem; font-weight:700;">まだ支出の記録はありません</li>';
+      } else {
+        dayExpenses.forEach(item => listEl.appendChild(createHistoryElement(item)));
+      }
     };
+    
     window.closeDailyDetail = function(e) { if(e === true || (e && e.target === document.getElementById('daily-detail-overlay'))) { document.getElementById('daily-detail-overlay').style.display = 'none'; document.body.style.overflow = 'auto'; } };
 
-    function renderFullHistory(startStr, endStr) {
-      const listEl = document.getElementById('history-list'); listEl.innerHTML = '';
-      const start = parseLocalDate(startStr), end = parseLocalDate(endStr), cycle = appData.expenses.filter(e => { const d = parseLocalDate(e.date); return d >= start && d <= end; });
-      if (cycle.length === 0) { listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.9rem; font-weight:600;">履歴はありません</li>'; return; }
-      [...cycle].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => listEl.appendChild(createHistoryElement(item)));
-    }
-    
-    function renderSettingsCategoryList() {
-      const container = document.getElementById('settings-cat-list'); container.innerHTML = '';
-      appData.categories.forEach(cat => { const tag = document.createElement('div'); tag.className = 'cat-tag'; tag.innerHTML = `<span>${cat}</span><span class="remove-btn" onclick="removeCategory('${cat}')" style="cursor:pointer; opacity:0.5;">✕</span>`; container.appendChild(tag); });
-    }
+    // カレンダー詳細から直接入力画面を開く
+    window.openInputFromDaily = function() {
+      closeDailyDetail(true);
+      setTimeout(() => {
+        editingId = null;
+        const di = document.getElementById('input-date');
+        di.value = currentDailyDate; 
+        if(di._flatpickr) di._flatpickr.setDate(currentDailyDate);
+        document.getElementById('input-modal-title').innerText = '支出を記録'; 
+        document.getElementById('add-btn').innerText = '記録する';
+        calcClear(); document.getElementById('input-note').value = '';
+        
+        const bs = document.getElementById('input-bottom-sheet'); bs.style.transform = '';
+        document.getElementById('input-modal-overlay').style.display = 'flex'; document.body.style.overflow = 'hidden';
+      }, 300); // ボトムシートが閉じるアニメーションを少し待つ
+    };
+
+    function renderFullHistory(startStr, endStr) { const listEl = document.getElementById('history-list'); listEl.innerHTML = ''; const start = parseLocalDate(startStr), end = parseLocalDate(endStr), cycle = appData.expenses.filter(e => { const d = parseLocalDate(e.date); return d >= start && d <= end; }); if (cycle.length === 0) { listEl.innerHTML = '<li style="text-align:center; color:var(--text-muted); padding:24px 12px; font-size:0.9rem; font-weight:600;">履歴はありません</li>'; return; } [...cycle].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).forEach(item => listEl.appendChild(createHistoryElement(item))); }
+    function renderSettingsCategoryList() { const container = document.getElementById('settings-cat-list'); container.innerHTML = ''; appData.categories.forEach(cat => { const tag = document.createElement('div'); tag.className = 'cat-tag'; tag.innerHTML = `<span>${cat}</span><span class="remove-btn" onclick="removeCategory('${cat}')" style="cursor:pointer; opacity:0.5;">✕</span>`; container.appendChild(tag); }); }
     function addCategory() { const val = document.getElementById('new-cat-name').value.trim(); if (!val || appData.categories.includes(val)) return; appData.categories.push(val); window.saveDataToCloud(); renderAll(); document.getElementById('new-cat-name').value = ''; }
     function removeCategory(catName) { if (appData.categories.length <= 1) { alert('最低1つのカテゴリが必要です。'); return; } if (confirm(`「${catName}」を削除しますか？`)) { appData.categories = appData.categories.filter(c => c !== catName); window.saveDataToCloud(); renderAll(); } }
     
-    window.saveSettings = function() {
-      const totalBudget = parseInt(document.getElementById('setting-total-budget').value), start = document.getElementById('setting-start-date').value, end = document.getElementById('setting-end-date').value;
-      if (isNaN(totalBudget) || !start || !end || new Date(start) > new Date(end)) { alert('正しい日付・数値を入力してください。'); return; }
-      appData.settings.totalBudget = totalBudget; appData.settings.startDate = start; appData.settings.endDate = end;
-      window.updateSettingsLive(); alert('設定を保存しました！');
-    }
+    window.saveSettings = function() { const totalBudget = parseInt(document.getElementById('setting-total-budget').value), start = document.getElementById('setting-start-date').value, end = document.getElementById('setting-end-date').value; if (isNaN(totalBudget) || !start || !end || new Date(start) > new Date(end)) { alert('正しい日付・数値を入力してください。'); return; } appData.settings.totalBudget = totalBudget; appData.settings.startDate = start; appData.settings.endDate = end; window.updateSettingsLive(); alert('設定を保存しました！'); }
     
-    window.resetAllData = async function() {
-      if (confirm('全データをリセットしますか？この操作は取り消せません。')) {
-        const p = appData.settings.personality, c = appData.settings.chartType; // 性格設定は残す
-        appData = { settings: { totalBudget: 15000, startDate: '', endDate: '', personality: p, chartType: c }, categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], expenses: [] };
-        const now = new Date(), nextMonth = new Date(now); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(nextMonth.getDate() - 1);
-        appData.settings.startDate = formatDateForStorage(now); appData.settings.endDate = formatDateForStorage(nextMonth);
-        await window.saveDataToCloud(); document.getElementById('input-date').value = getTodayStr(); syncSettingsToUI(); renderAll(); alert('データを初期化しました。');
-      }
-    }
+    window.resetAllData = async function() { if (confirm('全データをリセットしますか？この操作は取り消せません。')) { const p = appData.settings.personality, c = appData.settings.chartType; appData = { settings: { totalBudget: 15000, startDate: '', endDate: '', personality: p, chartType: c }, categories: ['食費', '日用品', '交通費', '娯楽', 'その他'], expenses: [] }; const now = new Date(), nextMonth = new Date(now); nextMonth.setMonth(nextMonth.getMonth() + 1); nextMonth.setDate(nextMonth.getDate() - 1); appData.settings.startDate = formatDateForStorage(now); appData.settings.endDate = formatDateForStorage(nextMonth); await window.saveDataToCloud(); document.getElementById('input-date').value = getTodayStr(); syncSettingsToUI(); renderAll(); alert('データを初期化しました。'); } }
     
     window.switchTab = function(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
