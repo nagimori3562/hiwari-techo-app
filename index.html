@@ -29,7 +29,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; -webkit-tap-highlight-color: transparent; }
     
     html { background-color: var(--bg); height: 100%; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 100px; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
+    /* 修正箇所：スクロール時にリストがボタンに隠れないよう padding-bottom を 100px -> 130px に拡大 */
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 130px; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
     
     #app-container { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
     
@@ -91,11 +92,11 @@
     .calc-btn.op { background: var(--primary-light); color: var(--primary); border: none; }
     .calc-btn.tax { background: #FEF3C7; color: #B45309; border: none; font-size: 0.85rem; font-weight: 700; }
     .calc-btn.clear { background: var(--danger-light); color: var(--danger); border: none; }
-    /* col-span-2 は今回から未使用となりますが一応残します */
     .col-span-2 { grid-column: span 2; }
     
+    /* 修正箇所：FABの位置を bottom: 94px から bottom: 116px に持ち上げ */
     .fab { 
-      position: fixed; bottom: 94px; right: 20px; 
+      position: fixed; bottom: 116px; right: 20px; 
       padding: 0 20px; height: 56px;
       background: var(--primary); color: white; border-radius: 28px; 
       display: flex; align-items: center; justify-content: center; 
@@ -289,7 +290,7 @@
           <div class="hero-sub" id="today-detail" style="font-weight: 500;">1日あたりの目安: ¥0 | 前日繰越: ¥0</div>
         </div>
         
-        <div class="card" style="margin-bottom: 80px;">
+        <div class="card">
           <div class="card-title">
             <div style="display:flex; align-items:center;">
               <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -444,7 +445,6 @@
         <button type="button" class="calc-btn op" onclick="calcInput('-')">－</button>
         <button type="button" class="calc-btn op" onclick="calcInput('+')">＋</button>
 
-        <!-- 修正①：0を通常サイズにし、⌫を追加 -->
         <button type="button" class="calc-btn" onclick="calcInput('0')">0</button>
         <button type="button" class="calc-btn" onclick="calcInput('.')">．</button>
         <button type="button" class="calc-btn" onclick="calcBackspace()" style="color: var(--text-muted); font-size: 1.4rem;">⌫</button>
@@ -725,7 +725,6 @@
       currentCalcStr += val; updateCalcDisplay();
     }
     
-    // 修正①：1文字削除（バックスペース）関数を追加
     function calcBackspace() {
       if (currentCalcStr.length > 0) {
         currentCalcStr = currentCalcStr.slice(0, -1);
@@ -863,7 +862,6 @@
       recent.forEach(item => listEl.appendChild(createHistoryElement(item)));
     }
     
-    // 修正②：履歴の右端に「︙（メニュー）」アイコンを追加
     function createHistoryElement(item) {
       const li = document.createElement('li'); li.className = 'history-item';
       li.onclick = () => promptHistoryAction(item.id);
