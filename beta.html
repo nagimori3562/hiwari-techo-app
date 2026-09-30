@@ -135,7 +135,7 @@
     .check-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--text); }
     .check-btn::before { content: '☐'; margin-right: 6px; font-size: 1.2rem; line-height: 1; color: var(--text-muted); }
     .check-btn.active::before { content: '☑'; color: var(--primary); }
-    .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
 
     .pie-chart { width: 220px; height: 220px; border-radius: 50%; background: #E5E7EB; margin-bottom: 24px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     .pie-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; height: 160px; background: var(--card-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; }
@@ -143,19 +143,22 @@
     .pie-overbudget .pie-center { border: 4px solid var(--danger-light); }
     .pie-overbudget #pie-total-val, .pie-overbudget #pie-title-val { color: var(--danger) !important; }
     
-    .trend-chart-wrapper { position: relative; height: 220px; width: 100%; }
+    .trend-chart-wrapper { position: relative; height: 280px; width: 100%; margin-bottom: 10px; }
     
     .shortage-alert { background: var(--danger-light); color: #991B1B; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; line-height: 1.4; animation: fadeIn 0.3s ease; border: 1px solid #FECACA; }
     .shortage-alert svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     
     .cat-tag-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; margin-bottom: 16px; }
     .cat-tag { background: #F9FAFB; border: 1px solid var(--border); padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-
-      nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 8px 24px 8px; z-index: 100; }
-    .nav-btn { flex: 1; min-width: 60px; background: transparent; border: none; color: #9CA3AF; font-size: 0.7rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 8px 0; border-radius: 16px; transition: all 0.2s ease; margin: 0 4px; }
-    .nav-btn svg { width: 24px; height: 24px; min-width: 24px; min-height: 24px; flex-shrink: 0; aspect-ratio: 1 / 1; display: block; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s; }
+    
+    nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 8px 24px 8px; z-index: 100; }
+    
+    /* 修正：アイコン潰れを完全に防ぐラッパー要素（カプセル）の追加 */
+    .nav-btn { flex: 1; background: transparent; border: none; color: #9CA3AF; font-size: 0.7rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 8px 0; border-radius: 16px; transition: all 0.2s ease; margin: 0 4px; }
+    .nav-icon-wrap { width: 24px; height: 24px; flex: 0 0 24px; display: flex; align-items: center; justify-content: center; }
+    .nav-icon-wrap svg { width: 100%; height: 100%; display: block; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: all 0.2s; }
     .nav-btn.active { color: var(--primary); background-color: var(--primary-light); }
-    .nav-btn.active svg { stroke-width: 2.5; }
+    .nav-btn.active .nav-icon-wrap svg { stroke-width: 2.5; }
 
     .legend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; }
     .legend-item { display: flex; align-items: center; font-size: 0.9rem; }
@@ -380,7 +383,6 @@
             <span id="cycle-range-badge" style="background:#E0E7FF; color:var(--primary); font-size:0.7rem; font-weight:700; padding: 4px 8px; border-radius: 6px;"></span>
           </div>
           <div style="margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 16px;">
-            <!-- レイアウト崩れ防止のため flex-wrap と gap を調整 -->
             <div style="display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 8px; row-gap: 4px;">
               <div class="hero-amount" id="total-remaining" style="color: var(--text); font-size: 2.2rem; letter-spacing: -1px;">残り ¥0</div>
               <div style="font-size: 0.95rem; color: var(--text-muted); font-weight: 700;">/ 総予算 <span id="total-budget-display">¥0</span></div>
@@ -513,10 +515,20 @@
       </div>
     </main>
     
+    <!-- アイコン潰れ対策を施したナビゲーション -->
     <nav>
-      <button type="button" class="nav-btn active" onclick="switchTab('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>ホーム</span></button>
-      <button type="button" class="nav-btn" onclick="switchTab('history')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>分析・履歴</span></button>
-      <button type="button" class="nav-btn" onclick="switchTab('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>設定</span></button>
+      <button type="button" class="nav-btn active" onclick="switchTab('home')">
+        <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+        <span>ホーム</span>
+      </button>
+      <button type="button" class="nav-btn" onclick="switchTab('history')">
+        <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
+        <span>分析・履歴</span>
+      </button>
+      <button type="button" class="nav-btn" onclick="switchTab('settings')">
+        <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
+        <span>設定</span>
+      </button>
     </nav>
   </div>
 
@@ -985,6 +997,8 @@
       window.trendChart = new Chart(canvas, {
         type: 'bar', data: { labels: labels, datasets: datasets },
         options: {
+          // 【追加】レイアウトにパディングを追加して下のラベルが切れないようにする
+          layout: { padding: { bottom: 16 } },
           responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
           animation: { duration: 400, easing: 'easeOutQuart', delay: (ctx) => { if (ctx.type === 'data' && ctx.dataset.type === 'bar') { return ctx.dataIndex * 40; } return 0; } },
           plugins: {
