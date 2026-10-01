@@ -425,28 +425,32 @@
             <button type="button" id="btn-chart-pie" class="chart-toggle-btn" onclick="switchChartView('pie')">📊 予算メーター</button>
           </div>
           
-          <div id="chart-view-trend" class="chart-view active">
-            <!-- 変更: アラートメッセージ枠（shortage-message-container）を丸ごと削除しました -->
+         <div id="chart-view-trend" class="chart-view active">
             
+            <!-- 上部のボタンを2つにし、文言を変更 -->
             <div class="chart-controls" style="margin-bottom: 8px;">
               <div id="btn-toggle-actual" class="check-btn active" onclick="toggleTrendBtn('actual')">
-                <span class="color-dot" style="background: #10B981;"></span><span id="lbl-actual">残高（実績）</span>
-              </div>
-              <div id="btn-toggle-predicted" class="check-btn" onclick="toggleTrendBtn('predicted')">
-                <span class="color-dot" style="background: #3B82F6;"></span><span id="lbl-predicted">残高（予測）</span>
+                <span class="color-dot" style="background: #10B981;"></span><span id="lbl-actual">使えるお金</span>
               </div>
               <div id="btn-toggle-bar" class="check-btn active" onclick="toggleTrendBtn('bar')">
-                <span class="color-dot" style="background: rgba(79, 70, 229, 0.6);"></span><span>日別支出</span>
+                <span class="color-dot" style="background: rgba(79, 70, 229, 0.6);"></span><span>日別の支出</span>
               </div>
             </div>
             
             <div class="trend-chart-wrapper">
               <canvas id="trend-chart-canvas"></canvas>
             </div>
+            
+            <!-- 予測ボタンをグラフの下（左寄せ）に新設 -->
+            <div style="display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 16px;">
+              <div id="btn-toggle-predicted" class="check-btn" onclick="toggleTrendBtn('predicted')">
+                <span class="color-dot" style="background: #3B82F6;"></span><span id="lbl-predicted">今後の支出を予測する</span>
+              </div>
+            </div>
+            
           </div>
 
           <div id="chart-view-pie" class="chart-view">
-　　　　　<!-- ここから下は元のままです -->
           <div class="chart-container">
               <div class="pie-chart" id="pie-chart">
                 <div class="pie-center">
@@ -950,8 +954,8 @@
       const current = parseLocalDate(startStr);
       const isCumulative = (appData.settings.chartType === 'cumulative');
       
-      document.getElementById('lbl-actual').innerText = isCumulative ? '累計（実績）' : '残高（実績）';
-      document.getElementById('lbl-predicted').innerText = isCumulative ? '累計（予測）' : '残高（予測）';
+      document.getElementById('lbl-actual').innerText = isCumulative ? '累計（実績）' : '使えるお金';
+      document.getElementById('lbl-predicted').innerText = isCumulative ? '累計（予測）' : '今後の支出を予測する';
       
       while (current <= end) {
         const dateStr = formatDateForStorage(current), spent = dailyMap[dateStr] || 0;
@@ -999,9 +1003,9 @@
       let y1Max = maxBarAmount === 0 ? 1000 : maxBarAmount * 2.5;
       
       const datasets = [
-        { type: 'line', label: isCumulative ? '累計（実績）' : '残高（実績）', data: actualLineData, rawData: rawActualData, borderColor: '#10B981', borderWidth: 3, pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
-        { type: 'line', label: isCumulative ? '累計（予測）' : '残高（予測）', data: predictedLineData, rawData: rawPredictedData, borderColor: '#3B82F6', borderWidth: 3, borderDash: [5, 5], pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
-        { type: 'bar', label: '日別支出', data: barData, backgroundColor: 'rgba(79, 70, 229, 0.4)', borderRadius: 4, pointStyle: 'rectRounded', yAxisID: 'y1' }
+        { type: 'line', label: isCumulative ? '累計（実績）' : '使えるお金', data: actualLineData, rawData: rawActualData, borderColor: '#10B981', borderWidth: 3, pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
+        { type: 'line', label: isCumulative ? '累計（予測）' : '今後の予測', data: predictedLineData, rawData: rawPredictedData, borderColor: '#3B82F6', borderWidth: 3, borderDash: [5, 5], pointStyle: 'line', tension: 0.1, pointRadius: 0, pointHitRadius: 10, yAxisID: 'y', animation: progressiveLineAnimation },
+        { type: 'bar', label: '日別の支出', data: barData, backgroundColor: 'rgba(79, 70, 229, 0.4)', borderRadius: 4, pointStyle: 'rectRounded', yAxisID: 'y1' }
       ];
       if (isCumulative) { datasets.unshift({ type: 'line', label: '予算上限', data: limitLineData, borderColor: '#9CA3AF', borderWidth: 2, borderDash: [4, 4], pointRadius: 0, pointHitRadius: 0, yAxisID: 'y' }); }
 
@@ -1023,7 +1027,7 @@
           },
           scales: {
             x: { grid: { display: false }, ticks: { font: { size: 9 }, maxTicksLimit: 8 } },
-            y: { type: 'linear', display: true, position: 'left', min: yMin, max: yMax, title: { display: true, text: isCumulative ? '累計支出' : '残高', font: { size: 9 } }, ticks: { font: { size: 9 }, callback: function(v){ return '¥' + v.toLocaleString(); } }, grid: { color: function(c) { return (c.tick && c.tick.value === 0) ? 'rgba(239,68,68,0.5)' : '#E5E7EB'; }, lineWidth: function(c) { return (c.tick && c.tick.value === 0) ? 2 : 1; } } },
+            y: { type: 'linear', display: true, position: 'left', min: yMin, max: yMax, title: { display: true, text: isCumulative ? '累計支出' : '使えるお金', font: { size: 9 } }, ticks: { font: { size: 9 }, callback: function(v){ return '¥' + v.toLocaleString(); } }, grid: { color: function(c) { return (c.tick && c.tick.value === 0) ? 'rgba(239,68,68,0.5)' : '#E5E7EB'; }, lineWidth: function(c) { return (c.tick && c.tick.value === 0) ? 2 : 1; } } },
             y1: { type: 'linear', display: false, position: 'right', min: 0, max: y1Max }
           }
         }
