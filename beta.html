@@ -212,6 +212,17 @@
     .success-box { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .icon { display: inline-block; width: 18px; height: 18px; stroke-width: 2; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  
+  /* キャラクターと吹き出しのレイアウト */
+    .character-area { display: none; gap: 16px; align-items: flex-start; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); animation: fadeIn 0.3s ease; }
+    .character-avatar { width: 50px; height: 50px; background: #F3F4F6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 2px solid #FFFFFF; }
+    .character-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    
+    /* 吹き出しのデザイン */
+    .chat-bubble { position: relative; background: var(--primary-light); color: var(--text); padding: 14px 16px; border-radius: 0 16px 16px 16px; font-size: 0.9rem; font-weight: 600; line-height: 1.5; flex: 1; }
+    /* 赤字予測の時は吹き出しの色を赤っぽくする */
+    .warning .chat-bubble { background: var(--danger-light); color: #991B1B; }
+    
   </style>
 </head>
 <body>
@@ -384,11 +395,18 @@
             </div>
             <span id="cycle-range-badge" style="background:#E0E7FF; color:var(--primary); font-size:0.7rem; font-weight:700; padding: 4px 8px; border-radius: 6px;"></span>
           </div>
-          <div style="margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 16px;">
+          
+          <div>
             <div style="display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 8px; row-gap: 4px;">
               <div class="hero-amount" id="total-remaining" style="color: var(--text); font-size: 2.2rem; letter-spacing: -1px;">残り ¥0</div>
               <div style="font-size: 0.95rem; color: var(--text-muted); font-weight: 700;">/ 総予算 <span id="total-budget-display">¥0</span></div>
             </div>
+          </div>
+          
+          <!-- 追加：キャラクターと吹き出しのエリア -->
+          <div class="character-area" id="character-area">
+            <div class="character-avatar" id="character-avatar">🐱</div>
+            <div class="chat-bubble" id="prediction-message"></div>
           </div>
           <div id="prediction-message" style="font-size: 0.95rem; line-height: 1.6; font-weight: 600;"></div>
         </div>
@@ -832,7 +850,19 @@
       const now = new Date(); if (now < start) { msgEl.innerHTML = `まだ期間が始まっていません。`; cardWrap.classList.remove('warning'); return; }
       const elapsedDays = Math.max(1, Math.round((Math.min(today, end) - start) / 86400000) + 1), remainingDays = Math.max(0, Math.round((end - today) / 86400000));
       
-      if (elapsedDays < 7) { msgEl.innerHTML = `期間スタート！<br><span style="color: var(--text-muted); font-size: 0.85rem;">💡 開始7日目からパートナーの予測が表示されます。</span>`; cardWrap.classList.remove('warning'); return; }
+      const charArea = document.getElementById('character-area');
+      const charAvatar = document.getElementById('character-avatar');
+      charArea.style.display = 'flex'; // キャラクターエリアを表示
+      
+      // 仮のダミーアイコン（後で画像URLに置き換えます）
+      const dummyIcons = { 'positive': '🌻', 'calm': '👓', 'hot': '🔥', 'yuru': '🍵' };
+      charAvatar.innerHTML = dummyIcons[appData.settings.personality] || '🐱';
+
+      if (elapsedDays < 7) { 
+        msgEl.innerHTML = `期間スタートだにゃ！<br><span style="opacity: 0.8; font-size: 0.8rem;">💡 開始7日目から予測を教えるにゃ。</span>`; 
+        cardWrap.classList.remove('warning'); 
+        return; 
+      }
       
       const avgDaily = pastCycleSpent / elapsedDays, currentBalance = totalBudget - pastCycleSpent, diff = currentBalance - (avgDaily * remainingDays);
       msgEl.innerHTML = getPersonalityMessage(diff, remainingDays, appData.settings.personality);
