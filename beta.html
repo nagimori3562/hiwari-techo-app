@@ -131,7 +131,8 @@
     .chart-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
     
     .chart-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 12px; }
-    .check-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); background: #F9FAFB; cursor: pointer; transition: all 0.2s; user-select: none; }
+    /* 【修正後】 余白を小さくし、文字をわずかに小さく、枠線を細くします */
+    .check-btn { display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); background: #F9FAFB; cursor: pointer; transition: all 0.2s; user-select: none; }
     .check-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--text); }
     .check-btn::before { content: '☐'; margin-right: 6px; font-size: 1.2rem; line-height: 1; color: var(--text-muted); }
     .check-btn.active::before { content: '☑'; color: var(--primary); }
@@ -143,7 +144,8 @@
     .pie-overbudget .pie-center { border: 4px solid var(--danger-light); }
     .pie-overbudget #pie-total-val, .pie-overbudget #pie-title-val { color: var(--danger) !important; }
     
-    .trend-chart-wrapper { position: relative; height: 280px; width: 100%; margin-bottom: 10px; }
+   /* 【修正後】 高さを220pxにし、下の余白も4pxに詰めます */
+　　.trend-chart-wrapper { position: relative; height: 220px; width: 100%; margin-bottom: 4px; }
     
     .shortage-alert { background: var(--danger-light); color: #991B1B; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; line-height: 1.4; animation: fadeIn 0.3s ease; border: 1px solid #FECACA; }
     .shortage-alert svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -409,23 +411,24 @@
       
       <div id="tab-history" class="tab-content">
         <div class="card">
-          <div class="card-title">
+　　　　　<!-- 変更: タイトルの右端に日付を移動し、下余白を詰める -->
+          <div class="card-title" style="margin-bottom: 12px;">
             <div style="display:flex; align-items:center;">
               <svg class="icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
               今期の分析
             </div>
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
           </div>
-          <div style="text-align: center; margin-bottom: 16px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted);" id="history-cycle-dates"></div>
           
-          <div class="chart-toggle-container">
+          <div class="chart-toggle-container" style="margin-bottom: 12px;">
             <button type="button" id="btn-chart-trend" class="chart-toggle-btn active" onclick="switchChartView('trend')">📈 推移グラフ</button>
             <button type="button" id="btn-chart-pie" class="chart-toggle-btn" onclick="switchChartView('pie')">📊 予算メーター</button>
           </div>
           
           <div id="chart-view-trend" class="chart-view active">
-            <div id="shortage-message-container"></div>
+            <!-- 変更: アラートメッセージ枠（shortage-message-container）を丸ごと削除しました -->
             
-            <div class="chart-controls">
+            <div class="chart-controls" style="margin-bottom: 8px;">
               <div id="btn-toggle-actual" class="check-btn active" onclick="toggleTrendBtn('actual')">
                 <span class="color-dot" style="background: #10B981;"></span><span id="lbl-actual">残高（実績）</span>
               </div>
@@ -443,7 +446,8 @@
           </div>
 
           <div id="chart-view-pie" class="chart-view">
-            <div class="chart-container">
+　　　　　<!-- ここから下は元のままです -->
+          <div class="chart-container">
               <div class="pie-chart" id="pie-chart">
                 <div class="pie-center">
                   <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;" id="pie-title-val">期間内支出</span>
@@ -988,11 +992,6 @@
         }
         current.setDate(current.getDate() + 1);
       }
-      
-      const shortageMsgContainer = document.getElementById('shortage-message-container');
-      if (shortageDateStr && !isCumulative) {
-        shortageMsgContainer.innerHTML = `<div class="shortage-alert"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> 今のペースだと ${shortageDateStr} 頃に残高が 0円 になる見込みです</div>`;
-      } else { shortageMsgContainer.innerHTML = ''; }
 
       let yMax = isCumulative ? totalBudget : (totalBudget > 0 ? totalBudget * 1.1 : 10000);
       if (yMax <= 0) yMax = 10000;
