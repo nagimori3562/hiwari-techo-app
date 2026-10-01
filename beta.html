@@ -441,11 +441,15 @@
               <canvas id="trend-chart-canvas"></canvas>
             </div>
             
-            <!-- 予測ボタンをグラフの下（左寄せ）に新設 -->
-            <div style="display: flex; justify-content: flex-start; margin-top: 8px; margin-bottom: 16px;">
+            <!-- 予測ボタンと拡大ボタンを並べる -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; margin-bottom: 16px;">
               <div id="btn-toggle-predicted" class="check-btn" onclick="toggleTrendBtn('predicted')">
                 <span class="color-dot" style="background: #3B82F6;"></span><span id="lbl-predicted">今後の支出を予測する</span>
               </div>
+              <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 8px; background: #E5E7EB; display: flex; align-items: center; gap: 4px;" onclick="openExpandedChart()">
+                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                拡大
+              </button>
             </div>
             
           </div>
@@ -588,6 +592,22 @@
       <button type="button" class="sheet-menu-btn danger" onclick="deleteFromAction()"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>削除する</button>
     </div>
   </div>
+  <!-- グラフ拡大表示用のオーバーレイ -->
+  <div id="expanded-chart-overlay" class="bottom-sheet-overlay" onclick="closeExpandedChart(event)">
+    <div class="bottom-sheet" id="expanded-chart-sheet" onclick="event.stopPropagation()" style="height: 85vh; max-height: 85vh; display: flex; flex-direction: column;">
+      <div class="sheet-drag-area" id="expanded-sheet-drag-area"><div class="sheet-handle"></div></div>
+      <button type="button" class="sheet-close-btn" onclick="closeExpandedChart(true)"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      <div style="font-weight: 800; font-size: 1.1rem; color: var(--text); margin-bottom: 12px; text-align: center;">推移グラフ（拡大）</div>
+      
+      <!-- 横スクロール用ラッパー -->
+      <div style="flex: 1; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 12px; background: #FAFAFA; padding: 16px 10px;">
+        <div style="height: 100%; min-width: 800px; position: relative;" id="expanded-chart-container">
+          <canvas id="expanded-chart-canvas"></canvas>
+        </div>
+      </div>
+      <div style="text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 16px; font-weight: 600;">左右にスクロールしてタップで詳細を確認できます</div>
+    </div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -649,6 +669,7 @@
       document.getElementById('input-date').value = getTodayStr(); 
       setupDragSheet('sheet-drag-area', 'input-bottom-sheet', closeInputModal);
       setupDragSheet('daily-sheet-drag-area', 'daily-detail-sheet', closeDailyDetail);
+      setupDragSheet('expanded-sheet-drag-area', 'expanded-chart-sheet', closeExpandedChart); // ←これを追加
     };
 
     function setupDragSheet(dragId, sheetId, closeFn) {
@@ -1125,6 +1146,70 @@
       window.scrollTo({ top: 0, behavior: 'auto' });
       
       if (tabName === 'history') { currentCalDate = new Date(); renderHistoryTab(); }
+    }
+    // --- 拡大グラフ用の処理 ---
+    window.expandedTrendChart = null;
+
+    window.openExpandedChart = function() {
+      const bs = document.getElementById('expanded-chart-sheet'); 
+      bs.style.transform = ''; 
+      document.getElementById('expanded-chart-overlay').style.display = 'flex'; 
+      document.body.style.overflow = 'hidden';
+      renderExpandedTrendChart();
+    };
+
+    window.closeExpandedChart = function(e) { 
+      if(e === true || (e && e.target === document.getElementById('expanded-chart-overlay'))) { 
+        document.getElementById('expanded-chart-overlay').style.display = 'none'; 
+        document.body.style.overflow = 'auto'; 
+      } 
+    };
+
+    function renderExpandedTrendChart() {
+      if (!window.trendChart) return;
+      const canvas = document.getElementById('expanded-chart-canvas');
+      if (window.expandedTrendChart) window.expandedTrendChart.destroy();
+
+      const originalData = window.trendChart.data;
+      const labelsCount = originalData.labels.length;
+      
+      // データ数に応じて横幅を計算 (1日あたり35px、最低800px)
+      const containerWidth = Math.max(800, labelsCount * 35);
+      document.getElementById('expanded-chart-container').style.minWidth = containerWidth + 'px';
+
+      const isCumulative = (appData.settings.chartType === 'cumulative');
+      const yMax = window.trendChart.options.scales.y.max;
+      const yMin = window.trendChart.options.scales.y.min;
+      const y1Max = window.trendChart.options.scales.y1.max;
+
+      window.expandedTrendChart = new Chart(canvas, {
+        type: 'bar', 
+        data: originalData,
+        options: {
+          layout: { padding: { bottom: 8 } },
+          responsive: true, maintainAspectRatio: false, 
+          interaction: { mode: 'index', intersect: false },
+          animation: false, // 開いた瞬間にパッと表示
+          plugins: {
+            legend: { display: true, position: 'top', labels: { font: { size: 11 }, usePointStyle: true, boxWidth: 8 } },
+            tooltip: { 
+              callbacks: { 
+                label: function(c) { 
+                  let l = c.dataset.label || ''; if(l) l+=': '; 
+                  let val = c.dataset.rawData ? c.dataset.rawData[c.dataIndex] : c.parsed.y;
+                  if(val !== null && val !== undefined) l+='¥'+val.toLocaleString(); 
+                  return l; 
+                } 
+              } 
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 } },
+            y: { type: 'linear', display: true, position: 'left', min: yMin, max: yMax, title: { display: true, text: isCumulative ? '累計支出' : '使えるお金', font: { size: 10 } }, ticks: { font: { size: 10 }, callback: function(v){ return '¥' + v.toLocaleString(); } }, grid: { color: function(c) { return (c.tick && c.tick.value === 0) ? 'rgba(239,68,68,0.5)' : '#E5E7EB'; }, lineWidth: function(c) { return (c.tick && c.tick.value === 0) ? 2 : 1; } } },
+            y1: { type: 'linear', display: false, position: 'right', min: 0, max: y1Max }
+          }
+        }
+      });
     }
   </script>
 </body>
